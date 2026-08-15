@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hcrobotics.testapp.BuildConfig;
+import com.hcrobotics.testapp.R;
 import com.hcrobotics.testapp.core.util.AppLogger;
 import com.hcrobotics.testapp.databinding.ActivityMainBinding;
 import com.hcrobotics.testapp.ui.base.BaseActivity;
@@ -62,6 +64,12 @@ public final class MainActivity extends BaseActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Surface the running build. On a fleet that updates over the air this
+        // is the fastest way to answer "which version is that device on?"
+        // without needing physical access to it.
+        binding.textAppVersion.setText(
+                getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
 
         AppLogger.i(TAG, "Main screen ready");
     }
