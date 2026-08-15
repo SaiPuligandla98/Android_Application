@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_dimens.xml  |  Sizes and spacing for the update screen
+ =============================================================================
+
+  Named so the layout carries no magic numbers, and so a host application can
+  override any of them by declaring the same name (app resources win the merge).
+
+  SPACING SCALE
+  =============
+  An 8dp rhythm, matching Material's baseline grid. Sticking to a scale is what
+  keeps a screen looking deliberate rather than assembled.
+
+  TOUCH TARGETS
+  =============
+  `updater_button_min_height` is 48dp. That is not a stylistic choice: it is
+  the minimum touch-target size in Android's accessibility guidelines, roughly
+  the contact area of an adult fingertip. Smaller controls are measurably
+  harder to hit, especially one-handed.
+ =============================================================================
+-->
+<resources>
+
+    <!-- ==================== Spacing ==================== -->
+    <dimen name="updater_spacing_small">8dp</dimen>
+    <dimen name="updater_spacing_medium">16dp</dimen>
+    <dimen name="updater_spacing_large">24dp</dimen>
+
+    <!-- ==================== Type scale ==================== -->
+    <dimen name="updater_text_size_heading">22sp</dimen>
+    <dimen name="updater_text_size_body">15sp</dimen>
+    <dimen name="updater_text_size_caption">13sp</dimen>
+
+    <!-- ==================== Components ==================== -->
+    <dimen name="updater_icon_size">48dp</dimen>
+    <!-- 48dp: the accessibility minimum for a touch target. -->
+    <dimen name="updater_button_min_height">48dp</dimen>
+    <dimen name="updater_button_corner_radius">8dp</dimen>
+    <dimen name="updater_progress_height">6dp</dimen>
+
+</resources>
