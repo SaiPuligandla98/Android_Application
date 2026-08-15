@@ -131,6 +131,28 @@
             android:screenOrientation="sensorLandscape"
             tools:node="merge" />
 
+        <!--
+          The feature modules' screens, constrained to landscape by the app.
+
+          Like the updater, :performance and :appinsights are deliberately
+          generic and take no view on orientation - they have to work in
+          portrait apps too. `tools:node="merge"` adds the attribute to a
+          component declared elsewhere rather than redeclaring it, so the
+          libraries stay reusable while this app states its own requirement.
+
+          Without these, opening either feature would be the one place the app
+          flipped to portrait.
+        -->
+        <activity
+            android:name="com.hcrobotics.performance.PerformanceActivity"
+            android:screenOrientation="sensorLandscape"
+            tools:node="merge" />
+
+        <activity
+            android:name="com.hcrobotics.appinsights.AppInsightsActivity"
+            android:screenOrientation="sensorLandscape"
+            tools:node="merge" />
+
     </application>
 
 </manifest>

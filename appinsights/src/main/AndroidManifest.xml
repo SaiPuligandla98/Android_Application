@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  appinsights/AndroidManifest.xml  |  Library manifest
+ =============================================================================
+
+  Merged into the consuming application at build time.
+
+  QUERY_ALL_PACKAGES - WHY IT IS NEEDED AND WHAT IT DOES NOT ALLOW
+  ===============================================================
+  From Android 11 (API 30) an app can see only its own package plus a few it
+  explicitly names. Without this permission the inventory would list exactly
+  one application - itself - which looks like a broken feature rather than a
+  platform restriction.
+
+  What it grants is VISIBILITY, and nothing more. It confers no ability to
+  start, stop, modify, disable or read the data of another application. This
+  module only ever asks PackageManager questions and reads APK file sizes;
+  listing an app has no effect on that app whatsoever.
+
+  A NOTE ON GOOGLE PLAY
+  =====================
+  Play treats QUERY_ALL_PACKAGES as a restricted permission requiring
+  justification, and a device-inventory feature is one of the accepted uses.
+  It is unrestricted here in any case, because these builds are distributed
+  outside Play.
+
+  Keeping it in THIS module rather than the application manifest means the
+  permission arrives with the feature and disappears if the feature is dropped,
+  instead of outliving it in the app manifest forever.
+
+  DELIBERATELY NOT DECLARED
+  =========================
+  PACKAGE_USAGE_STATS would allow per-app data and cache sizes via
+  StorageStatsManager, but it is a special access grant the user must enable in
+  system settings. Demanding that for a read-only list is a poor trade, so the
+  module reports APK size - readable with no permission at all - and the UI
+  says exactly what it is measuring.
+ =============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <application>
+
+        <!--
+          exported="false": opened only by the host application from its own
+          dashboard.
+        -->
+        <activity
+            android:name=".AppInsightsActivity"
+            android:exported="false"
+            android:label="@string/apps_screen_title" />
+
+    </application>
+
+</manifest>

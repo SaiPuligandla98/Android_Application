@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  perf_ic_network.xml  |  Material system icon.
+
+  Vector rather than PNG: one file that stays crisp at every screen density,
+  instead of five that must be regenerated whenever the artwork changes.
+
+  Tinted from a THEME ATTRIBUTE, so it re-colours itself in dark mode with no
+  second drawable and no code.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,21l3,-3h-2v-4h-2v4H9L12,21zM1,9l11,-8l11,8l-1.21,1.66L12,3.5L2.21,10.66L1,9zM12,7.5l7.79,5.66L21,11.5L12,5L3,11.5l1.21,1.66L12,7.5z" />
+</vector>

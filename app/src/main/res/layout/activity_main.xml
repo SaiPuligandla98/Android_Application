@@ -1,31 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
  =============================================================================
-  activity_main.xml  |  Layout for MainActivity (the home screen)
+  activity_main.xml  |  Layout for MainActivity = the dashboard
  =============================================================================
 
-  WHAT IS ON SCREEN
-  =================
-    * The shared top bar: Home on the left, Settings on the right.
-    * The welcome message, centred in the space beneath it.
-    * The running build version.
+  WHAT CHANGED IN 1.8.0
+  =====================
+  The welcome message and the "HC Robotics" top-bar title are gone. The screen
+  now exists to get the user somewhere rather than to greet them.
 
-  THE LOGO HAS BEEN REMOVED FROM THIS SCREEN
-  ==========================================
-  It appeared here and on the splash screen, which meant the user saw the same
-  wordmark twice within two seconds of opening the app. The splash is where
-  branding belongs - it exists for exactly that - so showing it again on the
-  landing screen added nothing and pushed the actual content down.
+  A landing screen whose entire content is a sentence the user has already read
+  is a screen they have to get past. Replacing it with the two things the app
+  actually does means the first tap is useful rather than dismissive.
 
   STRUCTURE
-  =========
-      top bar          pinned to the top
-      content block    centred in everything that remains
+      top bar     home and settings, unchanged
+      cards       one per feature, filling the space below
+      version     the running build, pinned to the bottom
 
-  The welcome text and version form a packed vertical chain constrained between
-  the top bar and the bottom of the screen, so the pair sits centred in the
-  remaining space rather than in the whole window - which would push it visibly
-  low once the bar took its height.
+  WHY CARDS RATHER THAN A LIST
+  ============================
+  There are two destinations and there will not be many more. A card carries an
+  icon, a title AND a line explaining what the feature is for, which a list row
+  cannot. At this count the extra space costs nothing.
+
+  Each card is a LinearLayout with `selectableItemBackground` layered over its
+  own background, so the whole card ripples on touch. That is what signals the
+  entire area is tappable rather than only the text inside it.
+
+  WHY THE CARDS SIT SIDE BY SIDE
+  ==============================
+  The app is landscape-only. Stacking vertically would leave most of a
+  landscape screen empty while making each card wide and short.
+
+  fitsSystemWindows is NOT cosmetic: targetSdk 35 forces edge-to-edge on
+  Android 15, so without it the top bar's buttons sit under the system bars.
+  In landscape the navigation bar takes the right edge, directly over the
+  Settings button, which then stops responding while staying fully visible.
  =============================================================================
 -->
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -37,32 +48,6 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.main.MainActivity">
 
-    <!--
-      android:fitsSystemWindows="true" is NOT cosmetic here - without it the top
-      bar is partly unusable.
-
-      From Android 15 (API 35) apps that target SDK 35 are forced edge-to-edge:
-      the window extends UNDER the status and navigation bars, and the app is
-      responsible for insetting its own content.
-
-      Left unhandled, the consequence was concrete and was reproduced on a real
-      device: in LANDSCAPE the navigation bar moves to the right-hand edge, and
-      the Settings button - anchored to that edge - ended up underneath it. The
-      button was fully visible and completely untappable, because the system bar
-      consumed every touch. The Home button on the opposite edge worked fine,
-      which is what makes this kind of bug so easy to miss.
-
-      This attribute makes the framework pad this view by the system bar insets,
-      so content stays inside the usable area in every orientation.
-    -->
-
-    <!--
-      Shared top bar. Defined once in view_top_bar.xml and included by every
-      screen, so a change there applies everywhere.
-
-      The id makes View Binding expose it as a nested binding, reached as
-      binding.topBar.buttonHome.
-    -->
     <include
         android:id="@+id/top_bar"
         layout="@layout/view_top_bar"
@@ -72,49 +57,120 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!--
-      The welcome message. Head of a packed chain, constrained BELOW the top bar
-      rather than to the parent, so it centres in the space that is actually
-      left over.
-    -->
-    <TextView
-        android:id="@+id/text_welcome_message"
+    <LinearLayout
+        android:id="@+id/layout_cards"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_height="0dp"
         android:gravity="center"
-        android:text="@string/main_welcome_message"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="@dimen/text_size_headline"
-        android:textStyle="bold"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_large"
         app:layout_constraintBottom_toTopOf="@id/text_app_version"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_bar"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
+
+        <!-- ==================== Device performance ==================== -->
+        <LinearLayout
+            android:id="@+id/card_performance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/spacing_medium"
+            android:layout_weight="1"
+            android:background="@drawable/bg_dashboard_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_large">
+
+            <ImageView
+                android:layout_width="@dimen/dashboard_icon_size"
+                android:layout_height="@dimen/dashboard_icon_size"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_speed"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:text="@string/dashboard_performance_title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/text_size_headline"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:gravity="center"
+                android:text="@string/dashboard_performance_subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/text_size_body" />
+
+        </LinearLayout>
+
+        <!-- ==================== Installed applications ==================== -->
+        <LinearLayout
+            android:id="@+id/card_apps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_weight="1"
+            android:background="@drawable/bg_dashboard_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_large">
+
+            <ImageView
+                android:layout_width="@dimen/dashboard_icon_size"
+                android:layout_height="@dimen/dashboard_icon_size"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_apps"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:text="@string/dashboard_apps_title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/text_size_headline"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:gravity="center"
+                android:text="@string/dashboard_apps_subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/text_size_body" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <!--
       Running build.
 
       On a fleet that updates over the air, the first question when a device
-      reports a problem is always which build it is running. Putting the answer
-      on screen turns that from a support conversation into a glance.
+      reports a problem is which build it is running, and this is the only way
+      to answer it without physical access.
     -->
     <TextView
         android:id="@+id/text_app_version"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginTop="@dimen/spacing_small"
-        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/spacing_medium"
         android:gravity="center"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="@dimen/text_size_body"
+        android:textSize="@dimen/text_size_caption"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
-        tools:text="Version 1.5.0" />
+        tools:text="Version 1.8.0 (build 9)" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

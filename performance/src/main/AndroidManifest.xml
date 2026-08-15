@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  performance/AndroidManifest.xml  |  Library manifest
+ =============================================================================
+
+  Merged into the consuming application at build time, so an app that depends
+  on this module inherits the permission and the Activity automatically.
+
+  WHY SO LITTLE IS DECLARED HERE
+  ==============================
+  Almost everything this module reports needs NO permission at all: memory,
+  storage, battery, CPU topology and uptime are readable by any app.
+
+  ACCESS_NETWORK_STATE is the single exception, and it is a normal permission
+  granted at install time with no prompt.
+
+  DELIBERATELY NOT DECLARED
+  =========================
+  * ACCESS_FINE_LOCATION - would reveal the Wi-Fi network name, but requesting
+    location for a diagnostics screen is a poor trade. The module detects that
+    the name is redacted and explains why, rather than demanding location.
+  * PACKAGE_USAGE_STATS - would allow historical per-app network figures, but
+    it is a special access grant requiring a trip to system settings. Not worth
+    it for a supplementary reading.
+
+  A host app that genuinely wants those may declare them itself; this module
+  then reports the extra detail automatically, because it checks at runtime
+  rather than assuming.
+ =============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Lets the module read which transport is active, whether the link is
+      metered, and whether the system has validated internet access.
+      Normal permission: granted at install time.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      Wi-Fi link quality: signal strength, link speed, frequency.
+      Normal permission. Does NOT reveal the network name - that needs location.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <application>
+
+        <!--
+          exported="false": launched only by the host application from its own
+          dashboard. Nothing outside the app has any business opening it.
+        -->
+        <activity
+            android:name=".PerformanceActivity"
+            android:exported="false"
+            android:label="@string/perf_screen_title" />
+
+    </application>
+
+</manifest>

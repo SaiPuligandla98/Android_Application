@@ -61,3 +61,22 @@ include ':app'
 // so the whole folder can be copied into any other Android project (or consumed
 // as an AAR) without dragging application code along with it.
 include ':updater'
+
+/*
+ * Feature modules. One module per capability, each self-contained.
+ *
+ * WHY SEPARATE MODULES RATHER THAN MORE PACKAGES IN :app
+ *   * Enforced boundaries. A package can import anything; a module can only
+ *     use what it declares a dependency on, so the separation cannot quietly
+ *     erode as the code grows.
+ *   * Parallel, incremental builds. Editing the app screens does not force a
+ *     rebuild of the device-metrics code.
+ *   * Reuse. Either can be dropped into another HC Robotics app the same way
+ *     :updater already is.
+ */
+
+// Device metrics: memory, storage, battery, network and system information.
+include ':performance'
+
+// Analysis of the other applications installed on the device.
+include ':appinsights'

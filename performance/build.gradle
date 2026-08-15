@@ -1,0 +1,69 @@
+/*
+ * =============================================================================
+ *  performance/build.gradle  --  Device performance monitoring module
+ * =============================================================================
+ *
+ *  WHAT THIS MODULE IS
+ *  -------------------
+ *  A self-contained screen reporting live device metrics: memory, storage,
+ *  battery, network and system information. The Android equivalent of the parts
+ *  of Windows Task Manager that Android actually permits an app to see.
+ *
+ *  WHY IT IS A SEPARATE MODULE
+ *  ---------------------------
+ *  It has no dependency on the application's screens, and the application has
+ *  no dependency on how metrics are collected. Enforcing that as a module
+ *  boundary rather than a package convention means it cannot erode: a module
+ *  can only reach what it declares.
+ *
+ *  It is also reusable - any HC Robotics app can add this one line and get the
+ *  same diagnostics screen.
+ *
+ *  RESOURCE PREFIX
+ *  ---------------
+ *  Every resource must start with `perf_`. Library resources merge into the
+ *  host app's resource table, so a bare `@string/title` would collide. AGP
+ *  enforces the prefix at build time.
+ * =============================================================================
+ */
+
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.hcrobotics.performance'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    resourcePrefix 'perf_'
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            consumerProguardFiles 'consumer-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.swiperefresh
+
+    testImplementation libs.junit
+}

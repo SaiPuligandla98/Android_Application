@@ -1,0 +1,70 @@
+/*
+ * =============================================================================
+ *  appinsights/build.gradle  --  Installed-application analysis module
+ * =============================================================================
+ *
+ *  WHAT THIS MODULE IS
+ *  -------------------
+ *  A read-only inventory of the other applications installed on the device:
+ *  name, package, version, target SDK, install and update dates, APK size, and
+ *  the permissions each one declares.
+ *
+ *  READ-ONLY, DELIBERATELY
+ *  -----------------------
+ *  It inspects and reports. It never stops, uninstalls, clears or otherwise
+ *  touches another application - "without disturbing anything" is a design
+ *  constraint here, not a side effect. Android would refuse most of those
+ *  operations anyway, but the module does not attempt them.
+ *
+ *  WHY A SEPARATE MODULE
+ *  ---------------------
+ *  It needs the QUERY_ALL_PACKAGES permission, which the rest of the app does
+ *  not. Keeping it in its own module means that permission arrives with the
+ *  feature and is trivially removed by dropping the dependency - rather than
+ *  being buried in the application manifest forever.
+ * =============================================================================
+ */
+
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.hcrobotics.appinsights'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    resourcePrefix 'apps_'
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            consumerProguardFiles 'consumer-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core
+    implementation libs.androidx.constraintlayout
+    // The device may have several hundred packages installed. A RecyclerView
+    // keeps only the visible rows in memory and recycles the rest; a plain
+    // ScrollView would inflate every one of them up front.
+    implementation libs.androidx.recyclerview
+
+    testImplementation libs.junit
+}

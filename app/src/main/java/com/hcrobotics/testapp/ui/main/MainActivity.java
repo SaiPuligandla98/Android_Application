@@ -17,6 +17,8 @@ import com.hcrobotics.testapp.BuildConfig;
 import com.hcrobotics.testapp.R;
 import com.hcrobotics.testapp.core.util.AppLogger;
 import com.hcrobotics.testapp.ui.settings.SettingsActivity;
+import com.hcrobotics.appinsights.AppInsightsActivity;
+import com.hcrobotics.performance.PerformanceActivity;
 import com.hcrobotics.testapp.databinding.ActivityMainBinding;
 import com.hcrobotics.testapp.ui.base.BaseActivity;
 
@@ -107,7 +109,22 @@ public final class MainActivity extends BaseActivity {
                 BuildConfig.VERSION_NAME,
                 BuildConfig.VERSION_CODE));
 
-        binding.topBar.textTopBarTitle.setText(R.string.top_bar_title_home);
+        /*
+         * The top-bar title is deliberately left EMPTY on the dashboard.
+         *
+         * The app name appears on the splash screen and under the launcher
+         * icon; repeating it here tells the user nothing they do not already
+         * know, and the space is better spent on the cards below. The TextView
+         * itself stays, because it is what pushes Home and Settings to opposite
+         * edges of the bar.
+         */
+        binding.topBar.textTopBarTitle.setText("");
+
+        binding.cardPerformance.setOnClickListener(v ->
+                startActivity(new Intent(this, PerformanceActivity.class)));
+        binding.cardApps.setOnClickListener(v ->
+                startActivity(new Intent(this, AppInsightsActivity.class)));
+
         binding.topBar.buttonSettings.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  perf_strings.xml  |  User-visible text for the performance module
+ =============================================================================
+
+  Every resource is prefixed `perf_`. Library resources merge into the host
+  app's table, so a bare name would collide; AGP enforces the prefix at build
+  time via `resourcePrefix` in build.gradle.
+
+  A host app can override any of these by declaring the same name in its own
+  strings.xml - the app wins the merge. That is how the module is re-branded
+  without forking it.
+ =============================================================================
+-->
+<resources>
+
+    <string name="perf_screen_title">Device performance</string>
+    <string name="perf_action_back">Back</string>
+
+    <!-- ==================== Section headings ==================== -->
+    <string name="perf_section_memory">MEMORY</string>
+    <string name="perf_section_storage">STORAGE</string>
+    <string name="perf_section_battery">BATTERY</string>
+    <string name="perf_section_network">NETWORK</string>
+    <string name="perf_section_system">SYSTEM</string>
+
+    <!-- ==================== Shared values ==================== -->
+    <string name="perf_yes">Yes</string>
+    <string name="perf_no">No</string>
+    <string name="perf_unknown">Unknown</string>
+    <string name="perf_unavailable">Unavailable</string>
+
+    <!-- ==================== Memory ==================== -->
+    <string name="perf_memory_used">Memory in use</string>
+    <string name="perf_memory_total">Total RAM</string>
+    <string name="perf_memory_available">%1$s available</string>
+    <string name="perf_memory_threshold">Low-memory threshold</string>
+    <string name="perf_memory_threshold_detail">Below this, Android starts closing background apps</string>
+    <string name="perf_memory_low">Currently low on memory</string>
+    <string name="perf_memory_app_heap">This app — Java heap</string>
+    <string name="perf_memory_app_heap_detail">Memory this app has allocated, of its permitted maximum</string>
+    <string name="perf_memory_app_pss">This app — total footprint</string>
+    <string name="perf_memory_app_pss_detail">Proportional set size: its share of all memory it touches</string>
+
+    <!-- ==================== Storage ==================== -->
+    <string name="perf_storage_internal">Internal storage</string>
+    <string name="perf_storage_external">External storage</string>
+    <string name="perf_storage_free">%1$s free for apps</string>
+    <string name="perf_storage_app">This app — files and cache</string>
+    <string name="perf_storage_app_detail">Includes any downloaded update waiting to install</string>
+
+    <!-- ==================== Battery ==================== -->
+    <string name="perf_battery_level">Charge level</string>
+    <string name="perf_battery_status">Status</string>
+    <string name="perf_battery_plugged">Power source</string>
+    <string name="perf_battery_health">Health</string>
+    <string name="perf_battery_temperature">Temperature</string>
+    <string name="perf_battery_voltage">Voltage</string>
+    <string name="perf_battery_technology">Cell type</string>
+    <string name="perf_battery_charge">Charge counter</string>
+
+    <string name="perf_battery_charging">Charging</string>
+    <string name="perf_battery_discharging">Discharging</string>
+    <string name="perf_battery_full">Full</string>
+    <string name="perf_battery_not_charging">Not charging</string>
+    <string name="perf_battery_ac">Mains adapter</string>
+    <string name="perf_battery_usb">USB</string>
+    <string name="perf_battery_wireless">Wireless</string>
+    <string name="perf_battery_unplugged">On battery</string>
+    <string name="perf_battery_health_good">Good</string>
+    <string name="perf_battery_health_overheat">Overheating</string>
+    <string name="perf_battery_health_dead">Failed</string>
+    <string name="perf_battery_health_over_voltage">Over voltage</string>
+    <string name="perf_battery_health_cold">Too cold</string>
+
+    <!-- ==================== Network ==================== -->
+    <string name="perf_net_connection">Connection</string>
+    <string name="perf_net_offline">Not connected</string>
+    <string name="perf_net_wifi">Wi-Fi</string>
+    <string name="perf_net_cellular">Mobile data</string>
+    <string name="perf_net_ethernet">Ethernet</string>
+    <string name="perf_net_vpn">VPN</string>
+    <string name="perf_net_internet">Internet reachable</string>
+    <string name="perf_net_validated">Yes — verified by the system</string>
+    <string name="perf_net_not_validated">No — connected but no internet</string>
+    <string name="perf_net_bandwidth">Estimated bandwidth</string>
+    <string name="perf_net_bandwidth_detail">The system\'s estimate for this link, not a measured speed</string>
+    <string name="perf_net_metered">Metered connection</string>
+    <string name="perf_net_metered_detail">Metered links may delay large downloads</string>
+
+    <string name="perf_net_ssid">Network name</string>
+    <string name="perf_net_ssid_hidden">Hidden by Android</string>
+    <string name="perf_net_ssid_needs_location">Android only reveals the Wi-Fi name to apps with location permission</string>
+    <string name="perf_net_signal">Signal strength</string>
+    <!-- %1$d = bars shown, %2$d = maximum bars -->
+    <string name="perf_net_signal_detail">%1$d of %2$d bars</string>
+    <string name="perf_net_link_speed">Link speed</string>
+    <string name="perf_net_frequency">Frequency</string>
+    <!-- %1$s is the network interface name, e.g. wlan0 -->
+    <string name="perf_net_ip">IP address (%1$s)</string>
+
+    <string name="perf_net_received">Data received</string>
+    <string name="perf_net_transmitted">Data sent</string>
+    <string name="perf_net_since_boot">Total since the device last restarted</string>
+    <string name="perf_net_app_usage">This app — data used</string>
+    <string name="perf_net_app_usage_detail">Sent and received since the device last restarted</string>
+
+    <!-- ==================== System ==================== -->
+    <string name="perf_sys_device">Device</string>
+    <string name="perf_sys_android">Android version</string>
+    <string name="perf_sys_api">API level %1$d</string>
+    <string name="perf_sys_build">Build</string>
+    <string name="perf_sys_soc">Processor</string>
+    <string name="perf_sys_cores">CPU cores</string>
+    <string name="perf_sys_cores_detail">Cores available to applications</string>
+    <string name="perf_sys_abi">Instruction set</string>
+    <string name="perf_sys_uptime">Time since restart</string>
+    <!-- %1$s = time awake, %2$d = that as a percentage of total uptime -->
+    <string name="perf_sys_awake">Awake for %1$s (%2$d%% of the time)</string>
+
+    <!--
+      The platform limitation, stated outright at the bottom of the screen.
+
+      Anyone arriving from Windows Task Manager will look for a per-app CPU and
+      memory table. It is not missing by oversight, and saying so is far more
+      useful than leaving them hunting for a tab that cannot exist.
+    -->
+    <string name="perf_platform_note">Note: Android does not allow apps to measure the CPU or memory used by <i>other</i> apps. That access was removed in Android 8.0, so no app can show a per-app process table like Windows Task Manager. The figures above are device-wide, plus this app\'s own usage.</string>
+
+</resources>

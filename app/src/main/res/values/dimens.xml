@@ -72,5 +72,8 @@
 
     <!-- Corner radius of the outlined top-bar icon buttons. -->
     <dimen name="icon_button_corner_radius">8dp</dimen>
-
+    <!-- ==================== Dashboard ==================== -->
+    <!-- Large enough to read as the card's subject rather than decoration. -->
+    <dimen name="dashboard_icon_size">44dp</dimen>
+    <dimen name="dashboard_card_radius">12dp</dimen>
 </resources>
