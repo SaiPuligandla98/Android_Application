@@ -112,6 +112,22 @@ public final class UpdateCheckWorker extends Worker {
             UpdaterLog.w("Update check could not reach the manifest, will retry: " + e.getMessage());
             // Network problems are transient by nature.
             return Result.retry();
+        } catch (RuntimeException e) {
+            /*
+             * Anything unexpected - a parsing edge case, a platform quirk on one
+             * OEM's ROM - must not be allowed to escape.
+             *
+             * An exception thrown out of doWork() is recorded by WorkManager as
+             * a hard failure, and for a UNIQUE PERIODIC job that means the
+             * schedule can stop running altogether. On a remote device that
+             * turns a small bug into "this unit never receives another update
+             * again", with no way to intervene.
+             *
+             * Retrying instead keeps the schedule alive, so a device can still
+             * recover once a fixed build is published.
+             */
+            UpdaterLog.e("Update check hit an unexpected error; keeping the schedule alive", e);
+            return Result.retry();
         }
 
         UpdaterLog.i("Manifest reports version " + update.getVersionCode()

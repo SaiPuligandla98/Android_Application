@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Downloads and parses the remote update manifest.
@@ -75,9 +77,17 @@ public final class ManifestFetcher {
 
         HttpURLConnection connection = null;
         try {
-            connection = HttpSupport.open(url);
-            connection.setRequestProperty("Cache-Control", "no-cache, no-store, max-age=0");
-            connection.setRequestProperty("Pragma", "no-cache");
+            /*
+             * The no-cache headers MUST be supplied to open(), not set on the
+             * returned connection: open() connects internally to resolve
+             * redirects, and setRequestProperty() throws once a connection has
+             * been made.
+             */
+            final Map<String, String> noCacheHeaders = new HashMap<>();
+            noCacheHeaders.put("Cache-Control", "no-cache, no-store, max-age=0");
+            noCacheHeaders.put("Pragma", "no-cache");
+
+            connection = HttpSupport.open(url, noCacheHeaders);
 
             final String body = readBody(connection);
             UpdaterLog.d("Manifest received (" + body.length() + " chars)");
