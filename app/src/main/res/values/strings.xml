@@ -54,9 +54,20 @@
 
     <!--
       Running build, shown beneath the welcome message.
-      %1$s is substituted with BuildConfig.VERSION_NAME at runtime.
+
+      Shows the version NAME and the version CODE together.
+      %1$s = BuildConfig.VERSION_NAME, %2$d = BuildConfig.VERSION_CODE.
+
+      Both matter, and for different reasons. The name is what a person
+      reports ("I'm on 1.7.0"). The code is what actually decides whether an
+      update applies - the check is strictly
+      `manifest.versionCode > installed versionCode`.
+
+      When an update does not arrive, the first useful question is "what code
+      is that device on?", and on a remote fleet this is the only way to answer
+      it without physical access.
     -->
-    <string name="main_version_format">Version %1$s</string>
+    <string name="main_version_format">Version %1$s (build %2$d)</string>
 
     <!-- Button that runs an update check immediately. -->
     <string name="main_action_check_updates">Check for updates</string>

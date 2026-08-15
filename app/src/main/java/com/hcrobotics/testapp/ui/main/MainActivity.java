@@ -99,8 +99,13 @@ public final class MainActivity extends BaseActivity {
         // Surface the running build. On a fleet that updates over the air this
         // is the fastest way to answer "which version is that device on?"
         // without needing physical access to it.
-        binding.textAppVersion.setText(
-                getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
+        // Name AND code. The name is what a user reports; the code is what
+        // actually decides whether an update applies, so on a remote fleet it
+        // is the number you need when an update does not arrive.
+        binding.textAppVersion.setText(getString(
+                R.string.main_version_format,
+                BuildConfig.VERSION_NAME,
+                BuildConfig.VERSION_CODE));
 
         binding.topBar.textTopBarTitle.setText(R.string.top_bar_title_home);
         binding.topBar.buttonSettings.setOnClickListener(v ->
