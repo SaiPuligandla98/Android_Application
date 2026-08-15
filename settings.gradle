@@ -1,0 +1,56 @@
+/*
+ * =============================================================================
+ *  settings.gradle  --  Gradle build-settings script (root of the build)
+ * =============================================================================
+ *
+ *  PURPOSE
+ *  -------
+ *  This is the very first file Gradle evaluates. It answers three questions:
+ *
+ *    1. Where do Gradle *plugins* come from?          -> pluginManagement { }
+ *    2. Where do *library dependencies* come from?    -> dependencyResolutionManagement { }
+ *    3. Which modules make up this build?             -> include ':app'
+ *
+ *  WHY REPOSITORIES ARE DECLARED HERE (AND NOT IN build.gradle)
+ *  ------------------------------------------------------------
+ *  Declaring repositories centrally, combined with FAIL_ON_PROJECT_REPOS,
+ *  guarantees that no individual module can quietly introduce an untrusted
+ *  artifact source. This is a standard supply-chain hygiene practice on
+ *  production Android builds.
+ *
+ *  ADDING A NEW MODULE LATER
+ *  -------------------------
+ *  Create the folder (e.g. `core-network/`) with its own build.gradle, then
+ *  add `include ':core-network'` at the bottom of this file.
+ * =============================================================================
+ */
+
+pluginManagement {
+    repositories {
+        // Google's Maven repository - hosts the Android Gradle Plugin (AGP).
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    // Reject any `repositories { }` block declared inside a module's build.gradle.
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Name shown in Gradle output, IDE window titles and build scans.
+rootProject.name = "HCRoboticsTestApp"
+
+// ---- Modules that participate in this build --------------------------------
+include ':app'

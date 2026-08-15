@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  activity_main.xml  |  Layout for MainActivity (the landing screen)
+ =============================================================================
+
+  WHAT IS ON SCREEN
+  =================
+  A single centred welcome message. The screen is intentionally bare: it is a
+  clean canvas for experimenting with Android features, and everything it does
+  contain demonstrates a practice worth copying into future screens.
+
+  PRACTICES DEMONSTRATED HERE
+  ===========================
+    * Text comes from @string, never a hard-coded literal  -> translatable.
+    * Colour comes from ?attr/, not @color                 -> dark-mode aware.
+    * Size comes from @dimen, not an inline number         -> one place to tune.
+    * Horizontal margins use `marginStart`/`marginEnd`     -> mirrors correctly
+      for right-to-left languages such as Arabic and Hebrew, which `marginLeft`
+      would not.
+
+  WHY THERE IS NO BACKGROUND ATTRIBUTE
+  ====================================
+  The root view deliberately declares no android:background. It therefore
+  inherits `android:colorBackground` from the active theme, which means this one
+  layout renders correctly in both light and dark mode with no variant file.
+
+  ADDING TO THIS SCREEN
+  =====================
+  Give any new view an android:id and View Binding will expose it on
+  MainActivity's `binding` field automatically after the next build.
+ =============================================================================
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.main.MainActivity">
+
+    <!--
+      The welcome message.
+
+      Constrained on all four sides, which centres it in the parent. The start
+      and end margins keep the text from touching the screen edges when it wraps
+      onto multiple lines on a narrow device.
+    -->
+    <TextView
+        android:id="@+id/text_welcome_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:gravity="center"
+        android:text="@string/main_welcome_message"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_headline"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

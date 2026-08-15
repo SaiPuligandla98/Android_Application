@@ -1,0 +1,50 @@
+# =============================================================================
+#  .gitignore  --  Files that must never enter version control
+# =============================================================================
+#
+#  Three categories are excluded:
+#    1. Build output      - regenerated from source; committing it causes
+#                           constant, meaningless merge conflicts.
+#    2. Machine-specific  - correct on one workstation, wrong on every other.
+#    3. Secrets           - once committed, they live in history forever.
+# =============================================================================
+
+# --- Build output ------------------------------------------------------------
+build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# --- Gradle ------------------------------------------------------------------
+.gradle/
+local.properties
+
+# --- Android Studio / IntelliJ -----------------------------------------------
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Signing and secrets -----------------------------------------------------
+# Never commit keystores or the credentials that unlock them.
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# --- Editor / assistant local state -------------------------------------------
+# Per-developer tool settings; not part of the project.
+.claude/settings.local.json
+.vscode/
+
+# --- OS noise ----------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- NOTE on the Gradle wrapper ----------------------------------------------
+# gradle/wrapper/gradle-wrapper.jar, gradle-wrapper.properties, gradlew and
+# gradlew.bat ARE committed on purpose. They pin the exact Gradle version, so a
+# fresh clone builds identically without anyone installing Gradle by hand.

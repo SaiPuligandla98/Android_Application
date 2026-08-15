@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  bg_splash.xml  |  Window background for the splash screen
+ =============================================================================
+
+  WHAT PROBLEM THIS SOLVES
+  ========================
+  On a cold start Android creates the app's window and draws its
+  `android:windowBackground` IMMEDIATELY - before the process has finished
+  starting, and well before onCreate() inflates any layout. If that background
+  is a plain colour, the user sees a blank frame first, then the branding pops
+  in. That flash is the single most common polish defect in Android launches.
+
+  By making the window background itself a layer-list that ALREADY contains the
+  logo, the branded frame is on screen from the very first rendered pixel.
+
+  HOW A LAYER-LIST WORKS
+  ======================
+  Items are drawn in document order, back to front:
+    Layer 1 : flat brand surface colour, filling the window.
+    Layer 2 : the wordmark, centred, drawn on top.
+
+  WHY EXPLICIT WIDTH AND HEIGHT
+  =============================
+  Without android:width / android:height, a bitmap in a window background is
+  drawn at its intrinsic pixel size, which is enormous on a high-density screen.
+  The values below are the shared dimension resources that
+  res/layout/activity_splash.xml also uses, so the pre-inflation background and
+  the inflated layout position the logo identically and the hand-off between
+  them is invisible.
+
+  (android:width/android:height on a layer-list item require API 23+; this app
+  has minSdk 24, so they are always available.)
+ =============================================================================
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Layer 1: the brand surface, filling the entire window. -->
+    <item android:drawable="@color/splash_background" />
+
+    <!-- Layer 2: the HC ROBOTICS wordmark, centred at its natural aspect ratio. -->
+    <item
+        android:width="@dimen/splash_logo_width"
+        android:height="@dimen/splash_logo_height"
+        android:drawable="@drawable/img_hc_robotics_wordmark"
+        android:gravity="center" />
+
+</layer-list>

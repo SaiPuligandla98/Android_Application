@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  data_extraction_rules.xml  |  Backup / transfer rules for Android 12+ (API 31+)
+ =============================================================================
+
+  WHY THIS REPLACED backup_rules.xml
+  ==================================
+  Android 12 split what used to be a single set of rules into two INDEPENDENT
+  scenarios, because they carry very different risk:
+
+    <cloud-backup>   Data leaves the device and is stored in the user's Google
+                     account. Treat as untrusted, long-lived storage.
+
+    <device-transfer> Data moves directly device-to-device during setup of a new
+                     phone. Never touches a server, so it is reasonable to
+                     transfer things that must never be cloud-backed up.
+
+  Being able to allow one and deny the other is the whole point of the split -
+  a session token might be fine to move directly to the user's new phone while
+  being completely unacceptable to upload to Drive.
+
+  CURRENT STATE
+  =============
+  This application persists no data, so neither section needs exclusions. The
+  file is referenced from AndroidManifest.xml and documented here so the rules
+  are written the moment storage is introduced.
+
+  HOW TO ADD AN EXCLUSION
+  =======================
+      <cloud-backup>
+          <exclude domain="sharedpref" path="secure_session.xml" />
+      </cloud-backup>
+
+  Companion file for API 30 and below: xml/backup_rules.xml. Keep the two in
+  sync, or behaviour will silently differ across Android versions.
+ =============================================================================
+-->
+<data-extraction-rules>
+
+    <!-- Scenario 1: backup to the user's Google account. -->
+    <cloud-backup>
+        <!-- No exclusions required: the application currently persists no data. -->
+    </cloud-backup>
+
+    <!-- Scenario 2: direct device-to-device transfer during new-phone setup. -->
+    <device-transfer>
+        <!-- No exclusions required: the application currently persists no data. -->
+    </device-transfer>
+
+</data-extraction-rules>

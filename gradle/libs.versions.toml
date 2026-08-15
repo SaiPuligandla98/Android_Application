@@ -1,0 +1,48 @@
+#
+# =============================================================================
+#  libs.versions.toml  --  Gradle Version Catalog
+# =============================================================================
+#
+#  PURPOSE
+#  -------
+#  A single, type-safe source of truth for every dependency version used in
+#  this repository. Modules reference entries as `libs.androidx.appcompat`
+#  rather than hard-coding "androidx.appcompat:appcompat:1.7.0".
+#
+#  WHY THIS MATTERS
+#  ----------------
+#  * One place to bump a version -> no drift between modules.
+#  * The IDE autocompletes catalog entries and flags typos at sync time.
+#  * Dependency upgrades become a one-line, reviewable diff.
+#
+#  NAMING CONVENTION
+#  -----------------
+#  Dashes in an alias become dots in Gradle:
+#      androidx-appcompat  ->  libs.androidx.appcompat
+# =============================================================================
+
+[versions]
+# --- Build tooling -----------------------------------------------------------
+androidGradlePlugin = "8.8.0"
+
+# --- AndroidX / Google libraries --------------------------------------------
+appcompat        = "1.7.0"     # Backport of modern Activity + theming APIs
+material         = "1.12.0"    # Material Design 3 components and themes
+constraintlayout = "2.1.4"     # Flat, performant layout engine
+
+# --- Test libraries ----------------------------------------------------------
+junit            = "4.13.2"    # Local (JVM) unit tests
+androidxJunit    = "1.2.1"     # Instrumented test runner integration
+espressoCore     = "3.6.1"     # UI interaction + assertion framework
+
+[libraries]
+androidx-appcompat        = { group = "androidx.appcompat",        name = "appcompat",        version.ref = "appcompat" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+google-material           = { group = "com.google.android.material", name = "material",       version.ref = "material" }
+
+junit                     = { group = "junit",                     name = "junit",            version.ref = "junit" }
+androidx-junit            = { group = "androidx.test.ext",         name = "junit",            version.ref = "androidxJunit" }
+androidx-espresso-core    = { group = "androidx.test.espresso",    name = "espresso-core",    version.ref = "espressoCore" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

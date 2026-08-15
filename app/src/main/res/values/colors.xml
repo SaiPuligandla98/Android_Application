@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  colors.xml  |  The brand colour palette (raw values)
+ =============================================================================
+
+  TWO-LAYER COLOUR SYSTEM
+  =======================
+  This file holds RAW palette values only — literal hex codes with names that
+  describe the colour itself ("brand_blue"), never its usage.
+
+  Layer 1 (here)      : what the colour IS      -> brand_blue = #07518D
+  Layer 2 (themes.xml): what the colour DOES    -> colorPrimary = @color/brand_blue
+
+  Application code and layouts should reference the SEMANTIC theme attribute
+  (?attr/colorPrimary), not the raw palette entry. That indirection is what
+  allows dark mode, and any future re-brand, to be a change in themes.xml alone.
+
+  PALETTE SOURCE
+  ==============
+  Values sampled directly from the supplied HC Robotics brand artwork, so the
+  in-app colours match the printed identity exactly.
+ =============================================================================
+-->
+<resources>
+
+    <!-- ==================== Brand palette ==================== -->
+
+    <!-- Primary brand blue, taken from the "HC ROBOTICS" wordmark. -->
+    <color name="brand_blue">#FF07518D</color>
+    <!-- Darker blue, for pressed states and status-bar scrim. -->
+    <color name="brand_blue_dark">#FF043A66</color>
+    <!-- Lighter blue, for containers and selected backgrounds in dark mode. -->
+    <color name="brand_blue_light">#FF6FA8D6</color>
+
+    <!-- Accent orange, taken from the robotic-arm "C" in the mark. -->
+    <color name="brand_orange">#FFEC803B</color>
+
+    <!-- Neutral surface from the brand artwork background. -->
+    <color name="brand_surface">#FFF5F5F5</color>
+
+    <!-- ==================== Neutrals ==================== -->
+
+    <color name="neutral_white">#FFFFFFFF</color>
+    <color name="neutral_black">#FF000000</color>
+    <color name="neutral_grey_900">#FF121212</color>
+    <color name="neutral_grey_800">#FF1E1E1E</color>
+    <color name="neutral_grey_600">#FF5F6368</color>
+    <color name="neutral_grey_300">#FFDADCE0</color>
+
+    <!-- ==================== Fixed, theme-independent ==================== -->
+
+    <!--
+      The splash background stays light in BOTH light and dark mode, and is
+      therefore deliberately NOT overridden in values-night/.
+
+      Reasoning: the brand mark is dark blue. Rendering it on a dark surface
+      would fail contrast requirements and misrepresent the identity. Holding a
+      branded launch screen to the brand's own colours — rather than the
+      system theme — is standard practice.
+    -->
+    <color name="splash_background">#FFF5F5F5</color>
+
+    <!-- Background plate of the adaptive launcher icon (API 26+). -->
+    <color name="ic_launcher_background">#FFF5F5F5</color>
+
+</resources>

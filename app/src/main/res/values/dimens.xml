@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  dimens.xml  |  Named sizes, spacings and type scale
+ =============================================================================
+
+  WHY NAMED DIMENSIONS INSTEAD OF INLINE VALUES
+  =============================================
+  * A tablet or landscape layout can override one value here
+    (values-sw600dp/dimens.xml) without duplicating a single layout file.
+  * Spacing stays on a consistent 8dp rhythm instead of drifting into a mix of
+    13dp, 15dp and 18dp across screens.
+  * A design-system change becomes one reviewable diff.
+
+  dp VS sp : USE THE RIGHT UNIT
+  =============================
+  dp (density-independent pixels): all layout sizes and spacing. Scales with
+      screen density so a 16dp margin is physically the same on every device.
+  sp (scale-independent pixels): text sizes ONLY. Behaves like dp but ALSO
+      honours the user's system font-size setting. Using dp for text silently
+      breaks accessibility for anyone who has enlarged their system font.
+ =============================================================================
+-->
+<resources>
+
+    <!-- ==================== Spacing scale (8dp rhythm) ==================== -->
+    <dimen name="spacing_extra_small">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_extra_large">32dp</dimen>
+
+    <!-- ==================== Type scale ==================== -->
+    <dimen name="text_size_caption">12sp</dimen>
+    <dimen name="text_size_body">16sp</dimen>
+    <dimen name="text_size_headline">22sp</dimen>
+
+    <!-- ==================== Splash screen ==================== -->
+    <!--
+      Logo dimensions. The source artwork is 1164x220 px (an aspect ratio of
+      5.29:1); 260dp x 49dp preserves that ratio exactly, so the wordmark is
+      never stretched.
+
+      These same two values are used by drawable/bg_splash.xml, which guarantees
+      the pre-inflation window background and the inflated layout place the logo
+      at an identical size — that is what makes the hand-off invisible.
+    -->
+    <dimen name="splash_logo_width">260dp</dimen>
+    <dimen name="splash_logo_height">49dp</dimen>
+
+</resources>
