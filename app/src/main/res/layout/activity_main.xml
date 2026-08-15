@@ -6,29 +6,39 @@
 
   WHAT IS ON SCREEN
   =================
-  A single centred welcome message. The screen is intentionally bare: it is a
-  clean canvas for experimenting with Android features, and everything it does
-  contain demonstrates a practice worth copying into future screens.
+    * The HC ROBOTICS brand mark.
+    * The welcome message.
+    * The running build version.
+    * A "Check for updates" button.
 
-  PRACTICES DEMONSTRATED HERE
-  ===========================
-    * Text comes from @string, never a hard-coded literal  -> translatable.
-    * Colour comes from ?attr/, not @color                 -> dark-mode aware.
-    * Size comes from @dimen, not an inline number         -> one place to tune.
-    * Horizontal margins use `marginStart`/`marginEnd`     -> mirrors correctly
-      for right-to-left languages such as Arabic and Hebrew, which `marginLeft`
-      would not.
+  WHY THE UPDATE BUTTON MATTERS ON A REMOTE FLEET
+  ===============================================
+  The background check runs every few hours, and Android batches background
+  work aggressively, so "every six hours" really means "at least six hours".
+  That is the right default for battery life and completely wrong when you are
+  standing in front of a device waiting to confirm a rollout.
 
-  WHY THERE IS NO BACKGROUND ATTRIBUTE
-  ====================================
-  The root view deliberately declares no android:background. It therefore
-  inherits `android:colorBackground` from the active theme, which means this one
-  layout renders correctly in both light and dark mode with no variant file.
+  The button calls OtaUpdater.checkNow(), which runs a check immediately. It is
+  the difference between verifying a deployment in ten seconds and waiting half
+  a day, on a device you may not be able to reach physically.
 
-  ADDING TO THIS SCREEN
-  =====================
-  Give any new view an android:id and View Binding will expose it on
-  MainActivity's `binding` field automatically after the next build.
+  LAYOUT: A PACKED VERTICAL CHAIN
+  ===============================
+  The four views form a CHAIN. A chain is a group of views that constrain to
+  each other in a line, with the group as a whole positioned by the parent:
+
+      parent top
+          |
+      [ logo ]  <-> [ welcome ] <-> [ version ] <-> [ button ]
+          |
+      parent bottom
+
+  `layout_constraintVertical_chainStyle="packed"` keeps them tight together and
+  centres the whole group. Without a chain, centring four stacked views as one
+  block means hand-calculating margins that break on the next screen size.
+
+  Only the FIRST view in a chain declares the chain style; the rest simply
+  constrain head-to-tail.
  =============================================================================
 -->
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -37,41 +47,58 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="@dimen/spacing_large"
     tools:context=".ui.main.MainActivity">
 
     <!--
-      The welcome message.
+      The HC ROBOTICS brand mark, at the head of the chain.
 
-      Constrained on all four sides, which centres it in the parent. The start
-      and end margins keep the text from touching the screen edges when it wraps
-      onto multiple lines on a narrow device.
+      adjustViewBounds keeps the artwork's aspect ratio (1164x220) whatever
+      width it is given, so the wordmark can never appear stretched.
+
+      A width of 0dp means "fill the space between my constraints", and
+      maxWidth caps it so the logo does not become absurdly wide on a tablet.
     -->
+    <ImageView
+        android:id="@+id/image_brand_logo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/cd_company_logo"
+        android:maxWidth="@dimen/main_logo_max_width"
+        android:src="@drawable/img_hc_robotics_wordmark"
+        app:layout_constraintBottom_toTopOf="@id/text_welcome_message"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- The welcome message. -->
     <TextView
         android:id="@+id/text_welcome_message"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_extra_large"
         android:layout_marginEnd="@dimen/spacing_large"
         android:gravity="center"
         android:text="@string/main_welcome_message"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/text_size_headline"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/text_app_version"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/image_brand_logo" />
 
     <!--
-      Running version, shown directly beneath the welcome message.
+      Running build.
 
-      Genuinely useful on a fleet that updates over the air: when someone reports
-      a problem from a device you cannot physically reach, the first question is
-      always "which build is it running?". Putting the answer on screen turns
-      that from a support conversation into a glance.
-
-      Constrained BELOW the welcome text rather than to the parent, so the pair
-      stay together as one block wherever the welcome message ends up.
+      On a fleet that updates over the air, the first question when a device
+      reports a problem is always which build it is running. Putting the answer
+      on screen turns that from a support conversation into a glance.
     -->
     <TextView
         android:id="@+id/text_app_version"
@@ -83,9 +110,27 @@
         android:gravity="center"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/text_size_body"
+        app:layout_constraintBottom_toTopOf="@id/button_check_updates"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
-        tools:text="Version 1.1.0" />
+        tools:text="Version 1.2.0" />
+
+    <!--
+      Runs an update check immediately, rather than waiting for the next
+      scheduled one. Tail of the chain.
+    -->
+    <Button
+        android:id="@+id/button_check_updates"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_extra_large"
+        android:minHeight="@dimen/touch_target_min"
+        android:text="@string/main_action_check_updates"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_app_version" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

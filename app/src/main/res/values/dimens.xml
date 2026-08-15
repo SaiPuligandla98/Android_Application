@@ -48,4 +48,19 @@
     <dimen name="splash_logo_width">260dp</dimen>
     <dimen name="splash_logo_height">49dp</dimen>
 
+    <!-- ==================== Main screen ==================== -->
+    <!--
+      Caps the brand mark's width so it stays a logo rather than a banner on a
+      tablet. Height follows automatically from adjustViewBounds and the
+      artwork's 1164x220 aspect ratio.
+    -->
+    <dimen name="main_logo_max_width">280dp</dimen>
+
+    <!--
+      Minimum height for any tappable control: the accessibility guideline
+      minimum, roughly the contact area of an adult fingertip. Smaller targets
+      are measurably harder to hit, especially one-handed.
+    -->
+    <dimen name="touch_target_min">48dp</dimen>
+
 </resources>
