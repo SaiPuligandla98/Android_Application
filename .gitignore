@@ -57,6 +57,3 @@ Thumbs.db
 # gradlew.bat ARE committed on purpose. They pin the exact Gradle version, so a
 # fresh clone builds identically without anyone installing Gradle by hand.
 
-# Temporarily excluded: pushing workflow files needs a token with 'workflow'
-# scope. Re-enable by removing this line once the token is updated.
-.github/workflows/

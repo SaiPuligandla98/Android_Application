@@ -1,0 +1,231 @@
+# =============================================================================
+#  publish-ota-update.yml  --  Publish an OTA update automatically on merge
+# =============================================================================
+#
+#  WHAT PROBLEM THIS SOLVES
+#  ------------------------
+#  Merging a pull request into master puts the CODE on master. It does not
+#  build an APK, does not create a release, and does not touch the manifest
+#  that devices poll. Until someone ran the publish step by hand, the fleet
+#  saw nothing - a merged PR looked complete while changing nothing.
+#
+#  That gap was invisible and easy to forget, and it caused three separate
+#  problems on this project:
+#
+#    * "I merged but no notification came" - because merging is not publishing.
+#    * master drifting, carrying one version's source with another version's
+#      manifest, for three releases running.
+#    * A merge conflict on ota/update-manifest.json in every release branch.
+#
+#  This workflow closes all three: merging to master IS publishing, and the
+#  manifest is written only ever by CI, on master.
+#
+#  WHAT IT DOES, ON EVERY PUSH TO MASTER
+#    1. Reads versionCode / versionName out of app/build.gradle.
+#    2. Stops quietly if that versionCode is not greater than the published
+#       one - a re-run, a docs commit or a forgotten bump has nothing to
+#       publish and is not an error.
+#    3. Builds the APK.
+#    4. Computes its SHA-256, which devices verify before installing.
+#    5. Creates the GitHub Release and uploads the APK.
+#    6. Regenerates ota/update-manifest.json, carrying the release being
+#       replaced forward as the rollback target.
+#    7. Commits the manifest back to master - the step that starts the rollout.
+#
+#  COST
+#  ----
+#  GitHub Actions is free for public repositories. Around two minutes per
+#  release.
+#
+#  PERMISSIONS
+#  -----------
+#  `contents: write` lets it create the release and push the manifest, using
+#  the automatic GITHUB_TOKEN. No secret to create, store or rotate.
+# =============================================================================
+
+name: Publish OTA update
+
+on:
+  push:
+    branches:
+      - master
+    # Documentation cannot change the APK, so skip those pushes entirely.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+  # Allows publishing by hand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Two merges in quick succession must not race each other into the same
+# release tag. Later runs wait rather than being cancelled, because cancelling
+# could abandon a release halfway through - APK uploaded, manifest not written.
+concurrency:
+  group: publish-ota
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out master
+        uses: actions/checkout@v4
+        with:
+          # The manifest is committed back at the end, so credentials must
+          # persist for that push.
+          persist-credentials: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle', 'gradle/libs.versions.toml') }}
+          restore-keys: gradle-
+
+      # ---- 1. Read the version the APK will actually carry -----------------
+      # Parsed from build.gradle rather than passed in, so the manifest can
+      # never describe a different build than the one uploaded.
+      - name: Read version from app/build.gradle
+        id: version
+        run: |
+          VERSION_CODE=$(grep -oP 'versionCode\s+\K\d+' app/build.gradle | head -1)
+          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle | head -1)
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "Building version $VERSION_NAME (code $VERSION_CODE)"
+
+      # ---- 2. Skip quietly when there is nothing new -----------------------
+      # Devices only offer an update when published > installed, so
+      # republishing the same code would do nothing at all. Treated as "no
+      # work", not a failure, so ordinary commits to master stay green.
+      - name: Decide whether to publish
+        id: gate
+        run: |
+          NEW_CODE=${{ steps.version.outputs.code }}
+          if [ -f ota/update-manifest.json ]; then
+            OLD_CODE=$(python3 -c "import json;print(json.load(open('ota/update-manifest.json'))['versionCode'])")
+          else
+            OLD_CODE=0
+          fi
+          echo "published=$OLD_CODE  new=$NEW_CODE"
+          if [ "$NEW_CODE" -le "$OLD_CODE" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::versionCode $NEW_CODE is not greater than the published $OLD_CODE - nothing to publish. Bump versionCode in app/build.gradle to ship a release."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ---- 3. Build ---------------------------------------------------------
+      - name: Build the APK
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+
+      # ---- 4. Checksum ------------------------------------------------------
+      # The integrity guarantee: a device whose download does not match this
+      # digest deletes the file and refuses to install it.
+      - name: Compute SHA-256
+        if: steps.gate.outputs.publish == 'true'
+        id: apk
+        run: |
+          APK="app/build/outputs/apk/debug/HCRobotics-${{ steps.version.outputs.name }}-debug.apk"
+          test -f "$APK" || { echo "Expected APK not found at $APK"; exit 1; }
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$APK")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(sha256sum "$APK" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "size=$(stat -c%s "$APK")" >> "$GITHUB_OUTPUT"
+
+      # ---- 5. Release -------------------------------------------------------
+      - name: Create the GitHub Release
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.name }}"
+          # Re-running after a failure should be safe, not an error.
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          gh release create "$TAG" "${{ steps.apk.outputs.path }}" \
+            --title "${{ steps.version.outputs.name }}" \
+            --notes "${{ github.event.head_commit.message }}" \
+            --target master
+
+      # ---- 6 & 7. Manifest, and the commit that starts the rollout ----------
+      - name: Publish the update manifest
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          V_CODE: ${{ steps.version.outputs.code }}
+          V_NAME: ${{ steps.version.outputs.name }}
+          APK_NAME: ${{ steps.apk.outputs.name }}
+          APK_SHA: ${{ steps.apk.outputs.sha }}
+          APK_SIZE: ${{ steps.apk.outputs.size }}
+          NOTES: ${{ github.event.head_commit.message }}
+        run: |
+          mkdir -p ota
+          python3 - <<'PY'
+          import json, os, datetime, pathlib
+
+          path = pathlib.Path('ota/update-manifest.json')
+
+          # The release being replaced becomes the new one's rollback target.
+          # A device cannot ask a server where the previous APK lives, because
+          # there is no server - the manifest has to carry it.
+          previous = None
+          if path.exists():
+              old = json.loads(path.read_text())
+              previous = {k: old[k] for k in
+                          ('versionCode', 'versionName', 'apkUrl', 'sha256', 'sizeBytes')
+                          if k in old}
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          name = os.environ['V_NAME']
+
+          manifest = {
+              'versionCode':  int(os.environ['V_CODE']),
+              'versionName':  name,
+              'apkUrl':       f"https://github.com/{repo}/releases/download/v{name}/{os.environ['APK_NAME']}",
+              'sha256':       os.environ['APK_SHA'],
+              'sizeBytes':    int(os.environ['APK_SIZE']),
+              'minSdk':       24,
+              'mandatory':    False,
+              'releaseNotes': os.environ['NOTES'].strip(),
+              'publishedAt':  datetime.datetime.now(datetime.timezone.utc)
+                                  .strftime('%Y-%m-%dT%H:%M:%SZ'),
+          }
+          if previous:
+              manifest['previous'] = previous
+
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Commit the manifest to master
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ota/update-manifest.json
+          # "[skip ci]" stops this commit re-triggering the workflow, which
+          # would otherwise loop until the versionCode gate stopped it.
+          git commit -m "release: publish version ${{ steps.version.outputs.name }} (versionCode ${{ steps.version.outputs.code }}) [skip ci]" || exit 0
+          git push origin master
+
+      - name: Summary
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          echo "### Published v${{ steps.version.outputs.name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Devices will offer this update on their next check." >> "$GITHUB_STEP_SUMMARY"
+          echo "Note: raw.githubusercontent caches for ~5 minutes." >> "$GITHUB_STEP_SUMMARY"
