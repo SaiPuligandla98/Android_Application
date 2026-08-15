@@ -1,0 +1,11 @@
+{
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.0.0/HCRobotics-1.0.0-release.apk",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "sizeBytes": 0,
+  "minSdk": 24,
+  "mandatory": false,
+  "releaseNotes": "Initial release.",
+  "publishedAt": "2026-08-15T00:00:00Z"
+}

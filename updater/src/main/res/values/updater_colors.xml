@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_colors.xml  |  Colours used by the update screen and notification
+ =============================================================================
+
+  WHY THE MODULE DEFINES ITS OWN COLOURS
+  ======================================
+  The update screen must render correctly inside ANY host application, whether
+  that app uses a Material 3 theme, a plain AppCompat theme, or something
+  custom. Referencing theme attributes that may not exist (?attr/colorOnPrimary
+  is Material 3 only) would crash at inflation time in some hosts.
+
+  Self-contained colours mean the screen looks the same everywhere and cannot
+  be broken by a theme the module has never seen.
+
+  RE-BRANDING PER APPLICATION
+  ===========================
+  Library resources are merged into the host app's resource table, and the APP
+  wins any name collision. To re-colour the update screen for a different
+  product, declare the same names in your app's res/values/colors.xml:
+
+      <color name="updater_color_primary">#FF6200EE</color>
+
+  No change to this module, and nothing to fork.
+ =============================================================================
+-->
+<resources>
+
+    <!--
+      Primary action colour: the download/install button and the progress bar.
+      Defaults to the HC Robotics brand blue.
+    -->
+    <color name="updater_color_primary">#FF07518D</color>
+
+    <!-- Pressed/disabled variant of the primary colour. -->
+    <color name="updater_color_primary_dark">#FF043A66</color>
+    <color name="updater_color_primary_disabled">#FF9EB6CA</color>
+
+    <!-- Text drawn on top of the primary colour. -->
+    <color name="updater_color_on_primary">#FFFFFFFF</color>
+
+    <!-- Accent used for the "this update is required" banner. -->
+    <color name="updater_color_warning">#FFEC803B</color>
+    <color name="updater_color_warning_background">#1AEC803B</color>
+
+    <!-- Error text, e.g. a failed checksum. -->
+    <color name="updater_color_error">#FFC5221F</color>
+
+    <!--
+      Text colours.
+
+      NOTE: these are fixed rather than theme-derived, and the screen's
+      background is taken from the host theme's `android:colorBackground`. On a
+      dark-themed host, `updater_color_text_primary` should be overridden by the
+      app (or a values-night/updater_colors.xml added here) so the text stays
+      legible. The module ships a values-night variant for exactly this reason.
+    -->
+    <color name="updater_color_text_primary">#FF1A1A1A</color>
+    <color name="updater_color_text_secondary">#FF5F6368</color>
+    <color name="updater_color_divider">#FFDADCE0</color>
+    <color name="updater_color_surface">#FFFFFFFF</color>
+
+</resources>

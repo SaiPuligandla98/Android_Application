@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_bg_button_primary.xml  |  Background for the primary action button
+ =============================================================================
+
+  WHY A HAND-ROLLED BUTTON BACKGROUND
+  ===================================
+  The obvious choice would be MaterialButton, which handles all of this. But it
+  requires the HOST application to use a Material theme, and this module is
+  designed to drop into any app. Under a plain AppCompat theme MaterialButton
+  throws at inflation time and takes the whole screen down with it.
+
+  A framework Button plus this drawable renders identically under every theme,
+  which is the right trade for a reusable library.
+
+  HOW A STATE-LIST DRAWABLE WORKS
+  ===============================
+  Android walks the items TOP TO BOTTOM and uses the FIRST one whose state
+  conditions all match. Order is therefore significant:
+
+    1. disabled  (checked first, so it wins even while pressed)
+    2. pressed
+    3. default   (no state conditions, so it always matches; must be last)
+
+  Putting the default first would make it match every time and the other two
+  would be dead code.
+ =============================================================================
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Disabled: greyed out, no longer reads as tappable. -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/updater_color_primary_disabled" />
+            <corners android:radius="@dimen/updater_button_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Pressed: darker, giving immediate touch feedback. -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/updater_color_primary_dark" />
+            <corners android:radius="@dimen/updater_button_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Default state. Must be last: it matches unconditionally. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/updater_color_primary" />
+            <corners android:radius="@dimen/updater_button_corner_radius" />
+        </shape>
+    </item>
+
+</selector>

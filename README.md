@@ -44,6 +44,26 @@ for Android 7.
 
 ---
 
+## Over-the-air updates
+
+The app updates itself in the field without the Play Store. Publishing a release
+is one command:
+
+```powershell
+.\tools\publish-update.ps1 -VersionName "1.1.0" -ReleaseNotes "Faster startup"
+```
+
+Devices poll a static JSON manifest, compare version codes, notify the user,
+download, verify the SHA-256 and install. **No server and no running cost** —
+GitHub Releases hosts the APK and `raw.githubusercontent` serves the manifest.
+
+The whole system lives in the reusable [`:updater`](updater/README.md) module,
+which drops into any Android project with one dependency line and one
+`initialise()` call. See also [`ota/README.md`](ota/README.md) for the manifest
+format.
+
+---
+
 ## Project layout
 
 ```
@@ -54,6 +74,22 @@ Andoird_Test_App/
 ├── local.properties             SDK path — machine-specific, NOT committed
 ├── gradle/
 │   └── libs.versions.toml       Version catalog: every dependency version
+│
+├── updater/                     REUSABLE OTA UPDATE MODULE (see its README)
+│   └── src/main/java/com/hcrobotics/updater/
+│       ├── OtaUpdater.java      Public API: initialise / checkNow
+│       ├── OtaConfig.java       Builder + persisted settings
+│       ├── UpdateInfo.java      Parsed manifest
+│       ├── work/                WorkManager periodic check
+│       ├── notify/              Update notifications
+│       ├── ui/                  Update screen
+│       └── internal/            HTTP, download, SHA-256, PackageInstaller
+│
+├── ota/
+│   └── update-manifest.json     What devices poll. Generated, never hand-edited
+│
+├── tools/
+│   └── publish-update.ps1       Build + release + publish manifest
 │
 ├── app/
 │   ├── build.gradle             Application module build configuration
@@ -187,7 +223,11 @@ Debug and info logs are compiled out of release builds — see
 | Add a whole new screen | New package under `ui/`, then declare it in `AndroidManifest.xml` |
 | Add a library | `gradle/libs.versions.toml`, then `app/build.gradle` |
 
+| Publish an app update to devices | `tools/publish-update.ps1` |
+| Change the update check interval | `core/config/AppConfig.java` |
+
 For the reasoning behind the structure, read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For branching, commits and releases, read [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md).
 
 ---
 

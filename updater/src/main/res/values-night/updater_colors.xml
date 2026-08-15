@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  values-night/updater_colors.xml  |  Dark mode colours for the update screen
+ =============================================================================
+
+  Selected automatically by Android when the device is in dark mode. Only the
+  values that need to change are redefined; every other colour is inherited
+  from values/updater_colors.xml.
+
+  WHAT CHANGES AND WHY
+  ====================
+  Text and surface colours invert, so the screen does not appear as a white
+  slab inside an otherwise dark app.
+
+  The primary blue is LIGHTENED rather than kept as-is: the deep brand blue does
+  not carry enough contrast against a dark surface to stay readable, and a
+  button nobody can read is worse than a slightly off-brand one.
+
+  KEEP THE KEYS IN SYNC
+  =====================
+  Any colour added to values/updater_colors.xml that is not purely decorative
+  should be considered here too. A key defined in one file but forgotten in the
+  other is the usual cause of "invisible text in dark mode".
+ =============================================================================
+-->
+<resources>
+
+    <!-- Lightened so it remains legible against a dark surface. -->
+    <color name="updater_color_primary">#FF6FA8D6</color>
+    <color name="updater_color_primary_dark">#FF4E86B4</color>
+    <color name="updater_color_primary_disabled">#FF3A4A57</color>
+
+    <!-- Dark text on the now-light primary colour. -->
+    <color name="updater_color_on_primary">#FF04263F</color>
+
+    <!-- Inverted text and surfaces. -->
+    <color name="updater_color_text_primary">#FFF5F5F5</color>
+    <color name="updater_color_text_secondary">#FFBDC1C6</color>
+    <color name="updater_color_divider">#FF3C4043</color>
+    <color name="updater_color_surface">#FF1E1E1E</color>
+
+    <!-- Error red, lightened for contrast on a dark background. -->
+    <color name="updater_color_error">#FFF28B82</color>
+
+</resources>

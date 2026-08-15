@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_activity_update.xml  |  Layout for UpdateActivity
+ =============================================================================
+
+  WHAT THE USER SEES
+  ==================
+    * An update icon and heading.
+    * New version, installed version and download size.
+    * A banner, only when the release is marked mandatory.
+    * Release notes, scrollable so long notes cannot push the buttons off screen.
+    * A status line and progress bar, revealed once a download starts.
+    * A primary action button, and a "Later" button hidden for mandatory updates.
+
+  STRUCTURE: THREE BLOCKS, NOT THIRTY CONSTRAINTS
+  ===============================================
+  The root ConstraintLayout has exactly three children:
+
+      header  ... pinned to the top
+      scroll  ... fills whatever space is left  (height = 0dp)
+      footer  ... pinned to the bottom
+
+  Grouping the fixed rows into LinearLayouts keeps the constraint graph small
+  and readable. Expressing every one of these views as an individual chain
+  would be more "pure" ConstraintLayout and considerably harder to change.
+
+  WHY THE RELEASE NOTES SCROLL
+  ============================
+  `android:layout_height="0dp"` on a constrained view means "take exactly the
+  space between my constraints". The ScrollView therefore absorbs whatever is
+  left over, so ten lines of release notes on a small phone scroll internally
+  rather than pushing the install button below the fold. A button the user
+  cannot reach is the same as no button at all.
+
+  WHY SOME VIEWS START GONE
+  =========================
+  The progress bar, status line and mandatory banner are `visibility="gone"`
+  and revealed by UpdateActivity when they apply. `gone` (not `invisible`)
+  means they occupy no space at all until needed, so the layout closes up
+  around them.
+ =============================================================================
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/updater_color_surface"
+    android:padding="@dimen/updater_spacing_large"
+    tools:context=".ui.UpdateActivity">
+
+    <!-- ==================== HEADER (pinned to the top) ==================== -->
+    <LinearLayout
+        android:id="@+id/layout_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!--
+          The update icon, tinted to the brand colour. The same vector is used
+          as the notification icon, where the system tints it white instead.
+        -->
+        <ImageView
+            android:id="@+id/image_update_icon"
+            android:layout_width="@dimen/updater_icon_size"
+            android:layout_height="@dimen/updater_icon_size"
+            android:contentDescription="@string/updater_cd_update_icon"
+            android:src="@drawable/updater_ic_system_update"
+            app:tint="@color/updater_color_primary" />
+
+        <TextView
+            android:id="@+id/text_heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_medium"
+            android:text="@string/updater_heading"
+            android:textColor="@color/updater_color_text_primary"
+            android:textSize="@dimen/updater_text_size_heading"
+            android:textStyle="bold" />
+
+        <!-- Version being offered. Text is set at runtime from the manifest. -->
+        <TextView
+            android:id="@+id/text_new_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_medium"
+            android:textColor="@color/updater_color_text_primary"
+            android:textSize="@dimen/updater_text_size_body"
+            tools:text="New version: 1.1.0" />
+
+        <!-- Version currently installed, so the user can see what changes. -->
+        <TextView
+            android:id="@+id/text_installed_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_small"
+            android:textColor="@color/updater_color_text_secondary"
+            android:textSize="@dimen/updater_text_size_caption"
+            tools:text="Installed: 1.0.0" />
+
+        <!-- Download size. Hidden when the manifest omits sizeBytes. -->
+        <TextView
+            android:id="@+id/text_size"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_small"
+            android:textColor="@color/updater_color_text_secondary"
+            android:textSize="@dimen/updater_text_size_caption"
+            tools:text="Download size: 5.3 MB" />
+
+        <!--
+          Shown only for a mandatory release. When visible, the "Later" button
+          in the footer is hidden, so the user has exactly one way forward.
+        -->
+        <TextView
+            android:id="@+id/text_mandatory_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_medium"
+            android:background="@drawable/updater_bg_warning_banner"
+            android:padding="@dimen/updater_spacing_medium"
+            android:text="@string/updater_mandatory_notice"
+            android:textColor="@color/updater_color_text_primary"
+            android:textSize="@dimen/updater_text_size_caption"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/text_release_notes_heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_large"
+            android:text="@string/updater_release_notes_heading"
+            android:textColor="@color/updater_color_text_primary"
+            android:textSize="@dimen/updater_text_size_body"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- ============ RELEASE NOTES (absorbs the remaining space) ============ -->
+    <!--
+      height="0dp" with both a top and a bottom constraint means "fill the gap
+      between the header and the footer". This is the view that flexes; every
+      other view keeps its natural size.
+    -->
+    <ScrollView
+        android:id="@+id/scroll_release_notes"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/updater_spacing_small"
+        android:layout_marginBottom="@dimen/updater_spacing_medium"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/layout_footer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_header">
+
+        <TextView
+            android:id="@+id/text_release_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingMultiplier="1.2"
+            android:textColor="@color/updater_color_text_secondary"
+            android:textSize="@dimen/updater_text_size_body"
+            tools:text="Faster startup\nFixed a crash on rotation\nNew settings screen" />
+
+    </ScrollView>
+
+    <!-- ==================== FOOTER (pinned to the bottom) ==================== -->
+    <LinearLayout
+        android:id="@+id/layout_footer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!--
+          Status line: download progress, verification, errors.
+          Revealed by UpdateActivity when there is something to report.
+        -->
+        <TextView
+            android:id="@+id/text_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/updater_spacing_small"
+            android:textColor="@color/updater_color_text_secondary"
+            android:textSize="@dimen/updater_text_size_caption"
+            android:visibility="gone"
+            tools:text="Downloading… 42%"
+            tools:visibility="visible" />
+
+        <!--
+          Horizontal determinate progress bar.
+
+          The framework style is used rather than Material's
+          LinearProgressIndicator so this screen inflates under any host theme.
+          progressTint applies the brand colour on API 21+.
+        -->
+        <ProgressBar
+            android:id="@+id/progress_download"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/updater_progress_height"
+            android:layout_marginBottom="@dimen/updater_spacing_medium"
+            android:max="100"
+            android:progressTint="@color/updater_color_primary"
+            android:visibility="gone"
+            tools:progress="42"
+            tools:visibility="visible" />
+
+        <!--
+          Primary action. Its label changes with the state of the flow:
+          "Download and install" / "Install now" / "Open settings" / "Retry".
+        -->
+        <Button
+            android:id="@+id/button_primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/updater_bg_button_primary"
+            android:minHeight="@dimen/updater_button_min_height"
+            android:text="@string/updater_action_download"
+            android:textAllCaps="false"
+            android:textColor="@color/updater_color_on_primary"
+            android:textSize="@dimen/updater_text_size_body" />
+
+        <!--
+          Dismisses the screen. Hidden entirely for a mandatory update, and
+          disabled while a download is running so the user cannot leave
+          mid-transfer.
+        -->
+        <Button
+            android:id="@+id/button_later"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/updater_spacing_small"
+            android:minHeight="@dimen/updater_button_min_height"
+            android:text="@string/updater_action_later"
+            android:textAllCaps="false"
+            android:textColor="@color/updater_color_text_secondary"
+            android:textSize="@dimen/updater_text_size_body" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

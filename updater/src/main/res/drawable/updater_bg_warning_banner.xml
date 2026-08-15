@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_bg_warning_banner.xml  |  Background for the "update required" banner
+ =============================================================================
+
+  Shown only when the manifest marks a release `"mandatory": true`.
+
+  DESIGN INTENT
+  =============
+  A tinted panel with a solid accent stripe down the leading edge. Loud enough
+  that the user registers the update cannot be postponed, quiet enough that it
+  does not read as an error.
+
+  WHY `left` AND NOT `start`
+  ==========================
+  A layer-list inset uses absolute edges. To keep the stripe on the leading edge
+  in right-to-left locales, the stripe here is drawn on the left and the layout
+  mirrors the whole banner via `android:layoutDirection`, which the framework
+  handles automatically for a view in an RTL layout.
+ =============================================================================
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Layer 1: the accent stripe, drawn as a full-bleed rectangle. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/updater_color_warning" />
+            <corners android:radius="@dimen/updater_button_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Layer 2: the tinted panel, inset so the stripe shows on the left. -->
+    <item android:left="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/updater_color_warning_background" />
+            <corners android:radius="@dimen/updater_button_corner_radius" />
+        </shape>
+    </item>
+
+</layer-list>
