@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.hcrobotics.testapp.BuildConfig;
 import com.hcrobotics.testapp.R;
+import com.hcrobotics.testapp.core.theme.ThemeManager;
 import com.hcrobotics.testapp.core.util.AppLogger;
 import com.hcrobotics.testapp.databinding.ActivitySettingsBinding;
 import com.hcrobotics.testapp.ui.base.BaseActivity;
@@ -112,6 +113,8 @@ public final class SettingsActivity extends BaseActivity {
         binding.topBar.buttonSettings.setOnClickListener(v ->
                 AppLogger.d(TAG, "Settings tapped while already in Settings"));
 
+        bindThemeChoice();
+
         binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdates());
         binding.buttonInstallUpdate.setOnClickListener(v -> OtaUpdater.openUpdateScreen(this));
         binding.rowNotifications.setOnClickListener(v -> openNotificationSettings());
@@ -151,6 +154,57 @@ public final class SettingsActivity extends BaseActivity {
         // too - otherwise it would be correct on the home screen and stale here.
         binding.topBar.viewUpdateBadge.setVisibility(
                 OtaUpdater.getPendingUpdate(this) != null ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Wires up the theme picker.
+     *
+     * <h3>Why the listener is attached AFTER setting the initial state</h3>
+     * {@code check()} fires the change listener. Attaching the listener first
+     * would mean simply opening this screen re-applies the current theme — an
+     * unnecessary write, and on some devices a visible flicker as AppCompat
+     * decides whether to recreate the Activity.
+     *
+     * <p>Selecting a theme recreates this Activity, which is exactly why the
+     * ordering matters: without the guard the recreation would trigger another
+     * apply, and so on.</p>
+     */
+    private void bindThemeChoice() {
+        final int checkedId;
+        switch (ThemeManager.getMode(this)) {
+            case LIGHT:
+                checkedId = R.id.radio_theme_light;
+                break;
+            case DARK:
+                checkedId = R.id.radio_theme_dark;
+                break;
+            case SYSTEM:
+            default:
+                checkedId = R.id.radio_theme_system;
+                break;
+        }
+        binding.groupTheme.check(checkedId);
+
+        // Attached only now, so the check() above cannot trigger it.
+        binding.groupTheme.setOnCheckedChangeListener((group, id) -> {
+            final ThemeManager.Mode mode;
+            if (id == R.id.radio_theme_light) {
+                mode = ThemeManager.Mode.LIGHT;
+            } else if (id == R.id.radio_theme_dark) {
+                mode = ThemeManager.Mode.DARK;
+            } else {
+                mode = ThemeManager.Mode.SYSTEM;
+            }
+
+            // No-op guard: recreation re-runs this method, and re-applying the
+            // mode that is already active would loop.
+            if (mode == ThemeManager.getMode(this)) {
+                return;
+            }
+
+            AppLogger.i(TAG, "Theme changed to " + mode);
+            ThemeManager.setMode(this, mode);
+        });
     }
 
     /**

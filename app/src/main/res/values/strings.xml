@@ -140,6 +140,21 @@
     <string name="settings_install_permission_title">Installing updates is not allowed</string>
     <string name="settings_install_permission_subtitle">Android needs permission before this app can install an update. Tap to grant it.</string>
 
+    <!-- ==================== Appearance ==================== -->
+
+    <string name="settings_section_appearance">APPEARANCE</string>
+
+    <!--
+      "System" is listed first and is the default. It is the option most people
+      actually want: the app darkens in the evening along with everything else
+      on the phone, with no further thought.
+    -->
+    <string name="settings_theme_system">Use device setting</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+
+    <string name="settings_theme_note">The theme changes immediately and is remembered the next time the app opens.</string>
+
     <!-- ==================== Notifications ==================== -->
 
     <string name="settings_section_notifications">NOTIFICATIONS</string>

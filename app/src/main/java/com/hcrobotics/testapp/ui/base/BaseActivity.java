@@ -5,6 +5,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.hcrobotics.testapp.core.util.AppLogger;
 
@@ -69,8 +72,71 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        enableFullScreenMode();
         AppLogger.d(getLogTag(), "onCreate | restored="
                 + (savedInstanceState != null));
+    }
+
+    /**
+     * Puts the screen into full-screen (immersive) mode.
+     *
+     * <h3>What the user sees</h3>
+     * The status bar and navigation bar are hidden, so the app owns the entire
+     * display. Swiping from an edge brings them back temporarily; they hide
+     * themselves again after a moment.
+     *
+     * <h3>Why "transient bars by swipe" rather than simply hiding them</h3>
+     * {@code BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE} is the only behaviour that
+     * is both immersive and escapable. The alternatives are worse:
+     *
+     * <ul>
+     *   <li>Hiding the bars with no way back would strand the user on a device
+     *       using gesture navigation — there would be no way to leave the app.</li>
+     *   <li>Letting a swipe restore the bars <em>permanently</em> means the
+     *       first accidental edge swipe ends full-screen mode for good.</li>
+     * </ul>
+     *
+     * <p>Transient bars overlay the content briefly and then withdraw, so the
+     * layout never reflows and nothing jumps under the user's finger.</p>
+     *
+     * <h3>Why this lives in BaseActivity</h3>
+     * Full-screen has to be re-applied on every Activity, because each one gets
+     * its own window. Putting it here means a new screen is immersive simply by
+     * extending this class — it cannot be forgotten.
+     *
+     * @see #onWindowFocusChanged(boolean) for why it is also re-applied later
+     */
+    private void enableFullScreenMode() {
+        // Draw behind the system bars rather than being laid out around them.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        final WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+    }
+
+    /**
+     * Re-applies full-screen mode whenever the window regains focus.
+     *
+     * <p>The system restores the bars whenever anything takes focus away — a
+     * permission dialog, the notification shade, the install confirmation
+     * prompt, a phone call. Without re-hiding them on the way back, the app
+     * quietly stops being full-screen after the first interruption and never
+     * recovers.</p>
+     *
+     * <p>Only re-applied when focus is GAINED. Doing it on focus loss would
+     * fight whatever is currently on top for control of the bars.</p>
+     *
+     * @param hasFocus whether this window now has focus
+     */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            enableFullScreenMode();
+        }
     }
 
     /** {@inheritDoc} Logs that the screen is about to become visible. */

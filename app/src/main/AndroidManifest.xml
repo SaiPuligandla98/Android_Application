@@ -28,7 +28,8 @@
   so exporting it would needlessly widen the attack surface.
  =============================================================================
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:name=".HcRoboticsApplication"
@@ -56,10 +57,27 @@
           Back on the main screen exits the app instead of returning to the
           splash.
         -->
+        <!--
+          ORIENTATION: sensorLandscape, on every Activity.
+
+          The app is landscape-only, but "landscape" alone would pin it to ONE
+          rotation, so turning the device the other way up leaves the interface
+          upside down. `sensorLandscape` allows BOTH landscape rotations and
+          follows the accelerometer between them, while never permitting
+          portrait.
+
+          That distinction matters on a device that gets picked up and put down
+          from either side, which is exactly the case for field hardware.
+
+          Declared per-Activity rather than on <application> because the
+          attribute is not inherited - an Activity without it would silently
+          allow portrait again.
+        -->
         <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:noHistory="true"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.HCRobotics.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -74,7 +92,8 @@
         -->
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
 
         <!--
           SettingsActivity
@@ -91,7 +110,26 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings_title"
-            android:parentActivityName=".ui.main.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity"
+            android:screenOrientation="sensorLandscape" />
+
+        <!--
+          UpdateActivity belongs to the :updater LIBRARY, which is deliberately
+          generic and takes no view on orientation - it has to work in portrait
+          apps too.
+
+          `tools:node="merge"` adds an attribute to a component declared
+          elsewhere rather than redeclaring it. Without this the update screen
+          would be the one place the app flipped to portrait, mid-update, which
+          is exactly the wrong moment to disorient someone.
+
+          This is the correct way for an app to constrain a library component:
+          the library stays reusable, the app states its own requirement.
+        -->
+        <activity
+            android:name="com.hcrobotics.updater.ui.UpdateActivity"
+            android:screenOrientation="sensorLandscape"
+            tools:node="merge" />
 
     </application>
 
