@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  apps_dimens.xml  |  Sizes and spacing for the app-inventory module
+ =============================================================================
+
+  The module carries its own scale rather than relying on names the host app
+  may not define, so it renders correctly wherever it is dropped in. A host app
+  can still override any of these by declaring the same name.
+
+  Row height and touch target are both 48dp or more: the accessibility minimum,
+  roughly the contact area of an adult fingertip.
+ =============================================================================
+-->
+<resources>
+
+    <dimen name="apps_spacing_small">8dp</dimen>
+    <dimen name="apps_spacing_medium">16dp</dimen>
+    <dimen name="apps_spacing_large">20dp</dimen>
+
+    <dimen name="apps_text_title">20sp</dimen>
+    <dimen name="apps_text_body">15sp</dimen>
+    <dimen name="apps_text_caption">12sp</dimen>
+
+    <dimen name="apps_touch_target">48dp</dimen>
+    <dimen name="apps_row_height">64dp</dimen>
+    <dimen name="apps_icon_size">40dp</dimen>
+
+</resources>

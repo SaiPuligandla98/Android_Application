@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  apps_strings.xml  |  User-visible text for the app-inventory module
+ =============================================================================
+
+  Every resource is prefixed `apps_`, enforced by `resourcePrefix` in
+  build.gradle. Library resources merge into the host app's table, so a bare
+  name would collide.
+ =============================================================================
+-->
+<resources>
+
+    <string name="apps_screen_title">Installed applications</string>
+    <string name="apps_action_back">Back</string>
+    <string name="apps_action_close">Close</string>
+
+    <string name="apps_scanning">Scanning installed applications…</string>
+    <!-- %1$d = number of apps, %2$s = their combined size -->
+    <string name="apps_summary">%1$d apps, %2$s total</string>
+
+    <!-- ==================== Filters ==================== -->
+    <!-- These read as the CURRENT state, so the screen answers "what am I
+         looking at?" without anything being opened. -->
+    <string name="apps_filter_user_only">Your apps</string>
+    <string name="apps_filter_all">All apps</string>
+
+    <string name="apps_sort_title">Sort by</string>
+    <string name="apps_sort_name">Name</string>
+    <string name="apps_sort_size">Size</string>
+    <string name="apps_sort_updated">Recently updated</string>
+
+    <!-- ==================== Row badges ==================== -->
+    <string name="apps_badge_system">SYSTEM</string>
+    <string name="apps_badge_disabled">DISABLED</string>
+
+    <!-- ==================== Detail dialog ==================== -->
+    <string name="apps_detail_package">Package: %1$s</string>
+    <!-- %1$s = version name, %2$d = version code -->
+    <string name="apps_detail_version">Version: %1$s (build %2$d)</string>
+    <string name="apps_detail_size">APK size: %1$s</string>
+    <string name="apps_detail_target">Targets: %1$s</string>
+    <string name="apps_detail_min">Requires at least: %1$s</string>
+    <string name="apps_detail_installed">Installed: %1$s</string>
+    <string name="apps_detail_updated">Last updated: %1$s</string>
+    <string name="apps_detail_permissions">Declares %1$d permissions</string>
+    <string name="apps_detail_type">Type: %1$s</string>
+    <string name="apps_detail_disabled">This app is currently disabled.</string>
+
+    <string name="apps_type_system">System app</string>
+    <string name="apps_type_user">Installed by you</string>
+
+</resources>

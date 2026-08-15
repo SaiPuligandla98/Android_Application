@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  apps_activity_insights.xml  |  Layout for AppInsightsActivity
+ =============================================================================
+
+  STRUCTURE
+      header      back button and title, pinned to the top
+      summary     count and total size, plus the two filter chips
+      list        RecyclerView filling the remainder
+
+  WHY THE SUMMARY SITS ABOVE THE LIST RATHER THAN INSIDE IT
+  =========================================================
+  It must stay visible while scrolling. "184 apps, 12.4 GB total" is the answer
+  most visits are actually after; scrolling it away means the reader has to
+  return to the top to see the only figure that summarises the whole screen.
+
+  WHY THE FILTERS ARE BUTTONS RATHER THAN A MENU
+  ==============================================
+  Both are toggles the user will change repeatedly while exploring. Buttons
+  show the CURRENT state as their label, so the screen answers "am I looking at
+  system apps?" without anything being opened. A menu hides both the control
+  and the state.
+
+  fitsSystemWindows because the app runs full-screen and edge-to-edge; without
+  it the header sits under the status bar and the back button falls beneath the
+  navigation bar in landscape.
+ =============================================================================
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true"
+    tools:context=".AppInsightsActivity">
+
+    <LinearLayout
+        android:id="@+id/apps_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/apps_spacing_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/apps_button_back"
+            android:layout_width="@dimen/apps_touch_target"
+            android:layout_height="@dimen/apps_touch_target"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/apps_action_back"
+            android:padding="@dimen/apps_spacing_small"
+            android:src="@drawable/apps_ic_back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/apps_spacing_medium"
+            android:layout_weight="1"
+            android:text="@string/apps_screen_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/apps_text_title"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/apps_summary_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/apps_spacing_large"
+        android:paddingTop="@dimen/apps_spacing_medium"
+        android:paddingEnd="@dimen/apps_spacing_large"
+        android:paddingBottom="@dimen/apps_spacing_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/apps_header">
+
+        <TextView
+            android:id="@+id/apps_text_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/apps_text_body"
+            android:textStyle="bold"
+            tools:text="184 apps, 12.40 GB total" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/apps_spacing_small"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/apps_chip_sort"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/apps_touch_target"
+                android:textAllCaps="false"
+                tools:text="Name" />
+
+            <Button
+                android:id="@+id/apps_chip_system"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/apps_spacing_small"
+                android:minHeight="@dimen/apps_touch_target"
+                android:textAllCaps="false"
+                tools:text="Your apps" />
+
+        </LinearLayout>
+
+        <!--
+          A scan takes a few hundred milliseconds on a device with several
+          hundred packages. Showing progress is what distinguishes "working"
+          from "broken" in that window.
+        -->
+        <ProgressBar
+            android:id="@+id/apps_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="@dimen/apps_spacing_small"
+            android:indeterminate="true"
+            android:indeterminateTint="?attr/colorPrimary"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/apps_recycler"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/apps_spacing_large"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/apps_summary_bar"
+        tools:itemCount="6"
+        tools:listitem="@layout/apps_item_app" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

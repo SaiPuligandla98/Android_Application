@@ -130,8 +130,8 @@ android {
         // versionCode : monotonically increasing integer used by the Play Store
         //               to decide what constitutes an "update".
         // versionName : human-readable string shown in Settings > Apps.
-        versionCode 8
-        versionName "1.7.0"
+        versionCode 9
+        versionName "1.8.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -249,6 +249,14 @@ dependencies {
      * HcRoboticsApplication.
      */
     implementation project(':updater')
+
+    /*
+     * Feature modules. Each is self-contained: it brings its own screens,
+     * resources and permissions in through manifest merging, so adding a
+     * feature is one line here and one Intent at the call site.
+     */
+    implementation project(':performance')
+    implementation project(':appinsights')
 
     // --- UI foundation -------------------------------------------------------
     implementation libs.androidx.appcompat        // AppCompatActivity, DayNight themes

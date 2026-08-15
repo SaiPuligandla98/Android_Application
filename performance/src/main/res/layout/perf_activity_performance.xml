@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  perf_activity_performance.xml  |  Layout for PerformanceActivity
+ =============================================================================
+
+  STRUCTURE
+      header          pinned to the top: back button + title
+      swipe refresh   fills the rest
+        scroll
+          container   sections and rows added at runtime
+
+  WHY THE ROWS ARE ADDED IN CODE RATHER THAN DECLARED HERE
+  =======================================================
+  The report is data-driven: each collector decides how many readings it
+  produces, and that number changes with the device. A phone with an SD card
+  reports an extra storage volume; a device on mobile data reports no Wi-Fi
+  rows at all.
+
+  Declaring thirty fixed rows and hiding the unused ones would mean the layout
+  had to know what every collector might return - so adding a reading would
+  mean editing XML, Java and the model together. Inflating perf_item_metric per
+  reading keeps that knowledge in one place.
+
+  WHY SwipeRefreshLayout
+  ======================
+  The screen refreshes itself every two seconds, but pull-to-refresh is the
+  gesture people reach for when they want to know the number is current RIGHT
+  NOW. It costs one view and removes any doubt about staleness.
+
+  fitsSystemWindows because the app is full-screen and edge-to-edge; without it
+  the header sits under the status bar and the back button lands beneath the
+  navigation bar in landscape.
+ =============================================================================
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true"
+    tools:context=".PerformanceActivity">
+
+    <LinearLayout
+        android:id="@+id/perf_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/perf_spacing_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/perf_button_back"
+            android:layout_width="@dimen/perf_touch_target"
+            android:layout_height="@dimen/perf_touch_target"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/perf_action_back"
+            android:padding="@dimen/perf_spacing_small"
+            android:src="@drawable/perf_ic_back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/perf_spacing_medium"
+            android:layout_weight="1"
+            android:text="@string/perf_screen_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/perf_text_title"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/perf_swipe_refresh"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/perf_header">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!--
+                  Sections and rows are inflated into here at runtime.
+                  See PerformanceActivity.refreshMetrics().
+                -->
+                <LinearLayout
+                    android:id="@+id/perf_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <!--
+                  The platform limitation, stated outright.
+
+                  Someone arriving from Windows Task Manager will look for a
+                  per-app CPU and memory table. It is not missing by oversight -
+                  Android removed the ability in 8.0 - and saying so is far more
+                  useful than leaving them hunting for a tab that cannot exist.
+                -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/perf_spacing_large"
+                    android:text="@string/perf_platform_note"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/perf_text_caption" />
+
+            </LinearLayout>
+        </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  perf_item_section.xml  |  A section heading in the performance report
+ =============================================================================
+
+  An icon and a title, tinted with the brand colour so the eye can find section
+  boundaries when scanning a long list of readings.
+
+  Kept deliberately light: a heading that competes with the data beneath it
+  makes the screen harder to read, not easier.
+ =============================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/perf_spacing_large"
+    android:paddingTop="@dimen/perf_spacing_large"
+    android:paddingEnd="@dimen/perf_spacing_large"
+    android:paddingBottom="@dimen/perf_spacing_small">
+
+    <ImageView
+        android:id="@+id/perf_image_section_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="@null"
+        app:tint="?attr/colorPrimary"
+        tools:src="@drawable/perf_ic_memory" />
+
+    <TextView
+        android:id="@+id/perf_text_section_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/perf_spacing_small"
+        android:layout_weight="1"
+        android:letterSpacing="0.08"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="@dimen/perf_text_caption"
+        android:textStyle="bold"
+        tools:text="MEMORY" />
+
+</LinearLayout>

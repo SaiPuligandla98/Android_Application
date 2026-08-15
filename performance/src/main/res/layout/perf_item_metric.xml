@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  perf_item_metric.xml  |  One reading in the performance report
+ =============================================================================
+
+  LAYOUT
+      label ......................... value      <- label left, value right
+      [========================]                 <- optional proportion bar
+      supporting detail                          <- optional
+
+  WHY THE VALUE IS RIGHT-ALIGNED
+  ==============================
+  Readings are scanned vertically, not read as sentences. Right-aligning the
+  values puts them in a single column, so "3.40 GB" and "812 MB" line up and
+  can be compared at a glance. Left-aligned values ragged against labels of
+  different lengths force the eye to hunt for each one.
+
+  WHY THE BAR AND DETAIL ARE `gone` BY DEFAULT
+  ============================================
+  Most readings have neither. `gone` rather than `invisible` means they occupy
+  no space at all, so a plain reading is a single compact line and only the
+  rows that genuinely need more room take it.
+ =============================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/perf_spacing_large"
+    android:paddingTop="@dimen/perf_spacing_small"
+    android:paddingEnd="@dimen/perf_spacing_large"
+    android:paddingBottom="@dimen/perf_spacing_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="true"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/perf_text_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/perf_text_body"
+            tools:text="Memory used" />
+
+        <TextView
+            android:id="@+id/perf_text_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/perf_spacing_medium"
+            android:gravity="end"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/perf_text_body"
+            android:textStyle="bold"
+            tools:text="3.40 GB of 7.86 GB (43%)" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/perf_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginTop="@dimen/perf_spacing_small"
+        android:max="100"
+        android:progressTint="?attr/colorPrimary"
+        android:visibility="gone"
+        tools:progress="43"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/perf_text_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/perf_text_caption"
+        android:visibility="gone"
+        tools:text="4.46 GB available"
+        tools:visibility="visible" />
+
+</LinearLayout>

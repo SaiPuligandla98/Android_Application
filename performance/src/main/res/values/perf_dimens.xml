@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  perf_dimens.xml  |  Sizes and spacing for the performance module
+ =============================================================================
+
+  The module carries its own scale rather than depending on the host app's
+  dimension names, so it renders correctly when dropped into a project that
+  happens not to define `spacing_medium`.
+
+  A host app can still override any of these by declaring the same name; app
+  resources win the merge.
+
+  Touch target is 48dp: the accessibility minimum, roughly the contact area of
+  an adult fingertip.
+ =============================================================================
+-->
+<resources>
+
+    <dimen name="perf_spacing_small">8dp</dimen>
+    <dimen name="perf_spacing_medium">16dp</dimen>
+    <dimen name="perf_spacing_large">20dp</dimen>
+
+    <dimen name="perf_text_title">20sp</dimen>
+    <dimen name="perf_text_body">15sp</dimen>
+    <dimen name="perf_text_caption">12sp</dimen>
+
+    <dimen name="perf_touch_target">48dp</dimen>
+
+</resources>

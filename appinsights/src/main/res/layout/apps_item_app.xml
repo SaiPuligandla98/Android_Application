@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  apps_item_app.xml  |  One application in the inventory list
+ =============================================================================
+
+  LAYOUT
+      [icon]   Name                    [badge]
+               com.example.package       size
+
+  WHY THE SIZE IS RIGHT-ALIGNED
+  =============================
+  Sizes are compared, not read. Aligning them in a single column lets the eye
+  find the large ones by shape alone, which is the point of sorting by size in
+  the first place.
+
+  WHY THE ROW HAS A FIXED HEIGHT
+  ==============================
+  Every row is identical in height, which lets the RecyclerView skip
+  re-measuring on each change (setHasFixedSize) - measurably smoother on a list
+  of several hundred entries.
+
+  selectableItemBackground gives the platform ripple, which is what signals the
+  whole row is tappable rather than just the text inside it.
+ =============================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/apps_row_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/apps_spacing_large"
+    android:paddingTop="@dimen/apps_spacing_small"
+    android:paddingEnd="@dimen/apps_spacing_large"
+    android:paddingBottom="@dimen/apps_spacing_small">
+
+    <ImageView
+        android:id="@+id/apps_image_icon"
+        android:layout_width="@dimen/apps_icon_size"
+        android:layout_height="@dimen/apps_icon_size"
+        android:contentDescription="@null"
+        tools:src="@drawable/apps_ic_apps" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/apps_spacing_medium"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/apps_text_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/apps_text_body"
+            tools:text="Chakshu GCS" />
+
+        <TextView
+            android:id="@+id/apps_text_package"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/apps_text_caption"
+            tools:text="com.hcrobotics.chakshugcs" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/apps_spacing_small"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/apps_text_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="@dimen/apps_text_caption"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="SYSTEM"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/apps_text_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/apps_text_caption"
+            tools:text="142 MB" />
+
+    </LinearLayout>
+
+</LinearLayout>

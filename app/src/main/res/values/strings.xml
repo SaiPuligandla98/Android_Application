@@ -186,5 +186,13 @@
       as an error halfway through an install.
     -->
     <string name="settings_rollback_note">Note: Android only allows installing an older version over a newer one for debuggable builds. On a signed release build the app must be uninstalled first, which erases its saved data.</string>
-
+    <!-- ==================== Dashboard ==================== -->
+    <!--
+      Each card states what the feature IS on the first line and what it is FOR
+      on the second. A title alone makes the user tap to find out.
+    -->
+    <string name="dashboard_performance_title">Performance</string>
+    <string name="dashboard_performance_subtitle">Memory, storage, battery and network, live</string>
+    <string name="dashboard_apps_title">Applications</string>
+    <string name="dashboard_apps_subtitle">What is installed on this device</string>
 </resources>
