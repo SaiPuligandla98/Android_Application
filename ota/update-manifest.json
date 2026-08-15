@@ -1,18 +1,18 @@
 {
-    "versionCode":  7,
-    "versionName":  "1.6.0",
-    "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.6.0/HCRobotics-1.6.0-debug.apk",
-    "sha256":  "7f447a787956922ac45f3bb66adbe8c7afd9e3a417094e1cc33781f5318e6874",
-    "sizeBytes":  6036249,
-    "minSdk":  24,
-    "mandatory":  false,
-    "releaseNotes":  "What\u0027s new in 1.6.0:\n- Full screen: the app now uses the whole display\n- Landscape only, rotating either way with the device\n- Choose your theme in Settings: Light, Dark, or follow the device\n- Professional settings layout",
-    "publishedAt":  "2026-08-15T10:44:00Z",
-    "previous":  {
-                     "versionCode":  6,
-                     "versionName":  "1.5.0",
-                     "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.5.0/HCRobotics-1.5.0-debug.apk",
-                     "sha256":  "ddd7bde7221bce067537ef7b0340e2ee92004f1abaa0f37d037a3c201c10ad72",
-                     "sizeBytes":  6617479
-                 }
+  "versionCode": 8,
+  "versionName": "1.7.0",
+  "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.7.0/HCRobotics-1.7.0-debug.apk",
+  "sha256": "d68a7f669613974a0449abe3f62a0c7c40028c823600473cd23da1bd4bf98dcc",
+  "sizeBytes": 6030955,
+  "minSdk": 24,
+  "mandatory": false,
+  "releaseNotes": "Merge pull request #9 from SaiPuligandla98/release/v1.7.0\n\nfeat(app): show the build number alongside the version",
+  "publishedAt": "2026-08-15T11:19:45Z",
+  "previous": {
+    "versionCode": 7,
+    "versionName": "1.6.0",
+    "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.6.0/HCRobotics-1.6.0-debug.apk",
+    "sha256": "7f447a787956922ac45f3bb66adbe8c7afd9e3a417094e1cc33781f5318e6874",
+    "sizeBytes": 6036249
+  }
 }
