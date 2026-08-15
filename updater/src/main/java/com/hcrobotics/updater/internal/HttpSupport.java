@@ -1,11 +1,13 @@
 package com.hcrobotics.updater.internal;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Shared HTTP plumbing for the two things this module fetches: the update
@@ -67,17 +69,47 @@ public final class HttpSupport {
     /**
      * Opens a connection to {@code url}, following redirects manually.
      *
-     * <p>The returned connection has already been connected and its status code
+     * @param url an {@code https://} URL
+     * @return a connected {@link HttpURLConnection}; the caller must
+     *         {@code disconnect()} it
+     * @throws IOException if the URL is not HTTPS, too many redirects occur, or
+     *                     the server returns a non-200 status
+     */
+    @NonNull
+    public static HttpURLConnection open(@NonNull String url) throws IOException {
+        return open(url, null);
+    }
+
+    /**
+     * Opens a connection to {@code url} with additional request headers,
+     * following redirects manually.
+     *
+     * <p>The returned connection has already been CONNECTED and its status code
      * checked, so the caller can read the body immediately.</p>
      *
-     * @param url an {@code https://} URL
+     * <p><b>This is why extra headers must be passed in rather than set
+     * afterwards.</b> {@link HttpURLConnection#setRequestProperty} throws
+     * {@link IllegalStateException} once a connection has been made, and this
+     * method connects internally in order to resolve redirects. A caller doing
+     * {@code open(url).setRequestProperty(...)} would crash on the success path
+     * only - never on an error path, where the exception is thrown before the
+     * call is reached. That makes it exactly the kind of bug that survives
+     * testing and fails in the field.</p>
+     *
+     * <p>Headers are re-applied at every redirect hop, so they survive the
+     * hand-off to a CDN host.</p>
+     *
+     * @param url          an {@code https://} URL
+     * @param extraHeaders headers to send, or {@code null} for none
      * @return a connected {@link HttpURLConnection} positioned at the final
      *         resource; the caller must {@code disconnect()} it
      * @throws IOException if the URL is not HTTPS, too many redirects occur, or
      *                     the server returns a non-200 status
      */
     @NonNull
-    public static HttpURLConnection open(@NonNull String url) throws IOException {
+    public static HttpURLConnection open(@NonNull String url,
+                                         @Nullable Map<String, String> extraHeaders)
+            throws IOException {
         String currentUrl = url;
 
         for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -89,6 +121,11 @@ public final class HttpSupport {
             connection.setRequestMethod("GET");
             connection.setRequestProperty("User-Agent", USER_AGENT);
             connection.setRequestProperty("Accept", "*/*");
+            if (extraHeaders != null) {
+                for (Map.Entry<String, String> header : extraHeaders.entrySet()) {
+                    connection.setRequestProperty(header.getKey(), header.getValue());
+                }
+            }
             // Redirects are handled below so every hop can be re-validated.
             connection.setInstanceFollowRedirects(false);
 
