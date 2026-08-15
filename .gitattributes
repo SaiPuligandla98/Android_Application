@@ -1,0 +1,51 @@
+# =============================================================================
+#  .gitattributes  --  How Git should treat each kind of file
+# =============================================================================
+#
+#  WHY THIS FILE EXISTS
+#  --------------------
+#  Windows writes line endings as CRLF; Linux and macOS use LF. Without a rule,
+#  the same file checked out on two machines produces a diff on every single
+#  line, and pull requests become unreviewable.
+#
+#  `text=auto eol=lf` tells Git: normalise everything to LF in the repository,
+#  and let each developer's working copy use whatever their OS prefers. The
+#  stored history stays clean regardless of who committed.
+#
+#  Binary files are marked explicitly so Git never tries to "fix" their line
+#  endings, which would corrupt them.
+# =============================================================================
+
+# Default: treat as text, store with LF in the repository.
+* text=auto eol=lf
+
+# --- Scripts that MUST keep a specific line ending ---------------------------
+# gradlew is executed by a Unix shell; CRLF would break its shebang.
+gradlew         text eol=lf
+*.sh            text eol=lf
+# Batch files are executed by cmd.exe, which requires CRLF.
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# --- Binary files: never modify -----------------------------------------------
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.ico           binary
+*.jar           binary
+*.apk           binary
+*.aab           binary
+*.keystore      binary
+*.jks           binary
+*.ttf           binary
+*.otf           binary
+
+# --- Diff hints ---------------------------------------------------------------
+# Show a useful hunk header (the enclosing class/method) in Java diffs.
+*.java          diff=java
+*.gradle        text
+*.md            text
+*.xml           text
+*.json          text

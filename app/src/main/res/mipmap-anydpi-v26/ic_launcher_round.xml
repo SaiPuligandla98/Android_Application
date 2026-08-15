@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  ic_launcher_round.xml  |  Adaptive icon used for `android:roundIcon`
+ =============================================================================
+
+  Some launchers (notably on Pixel and several OEM skins) request the round
+  variant declared by `android:roundIcon` in AndroidManifest.xml.
+
+  On API 26+ this is intentionally IDENTICAL to ic_launcher.xml: the adaptive
+  icon system already masks the layers to whatever shape the launcher wants, so
+  a separate round artwork would be redundant. The file exists so that the
+  manifest's roundIcon reference resolves correctly on every device.
+
+  The genuinely different round artwork lives in the legacy PNGs at
+  mipmap-<density>/ic_launcher_round.png, which pre-API-26 launchers use.
+
+  See ic_launcher.xml for a full explanation of the adaptive-icon layers and
+  the 66dp safe zone.
+ =============================================================================
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

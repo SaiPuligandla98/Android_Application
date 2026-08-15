@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  AndroidManifest.xml  |  The application's declaration to the Android OS
+ =============================================================================
+
+  PURPOSE
+  =======
+  Every Android app ships a manifest. The operating system reads it BEFORE any
+  of our code runs, in order to learn:
+
+    * what the app is called and which icon represents it,
+    * which components (Activities, Services, Receivers) exist,
+    * which of those components the launcher / other apps may start,
+    * which permissions and hardware features the app requires.
+
+  COMPONENTS DECLARED HERE
+  ========================
+    HcRoboticsApplication  Process-wide singleton, created before any Activity.
+    SplashActivity         Launcher entry point. Shows branding, then routes on.
+    MainActivity           The app's first real screen.
+
+  NOTE ON `android:exported`
+  ==========================
+  Since Android 12 (API 31) every component with an <intent-filter> MUST state
+  `exported` explicitly. Only SplashActivity is exported, because only it is
+  started from outside our process (by the launcher). MainActivity is internal,
+  so exporting it would needlessly widen the attack surface.
+ =============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name=".HcRoboticsApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HCRobotics">
+
+        <!--
+          SplashActivity
+          ==============
+          The LAUNCHER intent-filter makes this the icon the user taps.
+
+          `android:theme` points at the splash-specific theme whose
+          windowBackground already contains the logo. That means the branded
+          frame is drawn by the window manager the instant the process starts,
+          eliminating the blank-white flash that would otherwise appear before
+          onCreate() inflates a layout.
+
+          `noHistory="true"` drops the splash from the back stack, so pressing
+          Back on the main screen exits the app instead of returning to the
+          splash.
+        -->
+        <activity
+            android:name=".ui.splash.SplashActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.HCRobotics.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          MainActivity
+          ============
+          The landing screen, started only by SplashActivity, hence exported=false.
+        -->
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

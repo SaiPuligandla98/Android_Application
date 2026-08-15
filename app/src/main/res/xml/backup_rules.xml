@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  backup_rules.xml  |  Auto Backup rules for Android 11 and below (API <= 30)
+ =============================================================================
+
+  WHAT AUTO BACKUP DOES
+  =====================
+  When `android:allowBackup="true"`, Android periodically uploads the app's
+  private data (SharedPreferences, files, databases) to the user's Google Drive
+  and restores it when they install the app on a new device.
+
+  WHY YOU MUST THINK ABOUT THIS DELIBERATELY
+  ==========================================
+  Auto Backup is opt-OUT, not opt-in. Anything not explicitly excluded leaves
+  the device. Access tokens, session cookies, cached personal data and device
+  identifiers must all be excluded, or they end up in cloud storage - and a
+  restored stale token is a genuine security problem, not just a nuisance.
+
+  CURRENT STATE
+  =============
+  This application stores no data at all yet, so no exclusions are required.
+  The file exists, referenced and documented, so that the rules are added at the
+  moment persistence is introduced rather than discovered missing later.
+
+  HOW TO ADD AN EXCLUSION
+  =======================
+      <exclude domain="sharedpref" path="secure_session.xml" />
+      <exclude domain="database"   path="credentials.db" />
+
+  Valid domains: sharedpref, database, file, external, root.
+  Companion file for API 31+: xml/data_extraction_rules.xml.
+ =============================================================================
+-->
+<full-backup-content>
+    <!-- No exclusions required: the application currently persists no data. -->
+</full-backup-content>

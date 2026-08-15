@@ -1,0 +1,31 @@
+/*
+ * =============================================================================
+ *  build.gradle (root project)  --  Build configuration shared by all modules
+ * =============================================================================
+ *
+ *  PURPOSE
+ *  -------
+ *  The root build script does NOT build anything itself. Its only job is to
+ *  declare which plugins the build *may* use, without applying them here.
+ *
+ *  `apply false` means: "resolve and make this plugin available to sub-modules,
+ *  but do not apply it to the root project." Each module then opts in via
+ *  `plugins { alias(libs.plugins.android.application) }` in its own script.
+ *
+ *  `libs.plugins.*` resolves against the version catalog defined in
+ *  gradle/libs.versions.toml - the single place where every version number
+ *  in this repository lives.
+ * =============================================================================
+ */
+
+plugins {
+    alias(libs.plugins.android.application) apply false
+}
+
+/**
+ * Convenience task so `gradlew clean` works from the repository root and wipes
+ * the aggregated build output directory.
+ */
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

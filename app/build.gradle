@@ -1,0 +1,155 @@
+/*
+ * =============================================================================
+ *  app/build.gradle  --  Build script for the `:app` application module
+ * =============================================================================
+ *
+ *  PURPOSE
+ *  -------
+ *  Describes how the installable APK is produced: which SDK levels it targets,
+ *  what identity it ships under, how each build type is optimised, and which
+ *  libraries it links against.
+ *
+ *  KEY CONCEPTS FOR READERS NEW TO ANDROID
+ *  ---------------------------------------
+ *  compileSdk : the API level the code is COMPILED against. Using the newest
+ *               level lets you call the newest APIs; it does not change which
+ *               devices can install the app.
+ *  minSdk     : the OLDEST Android version that may install the app.
+ *  targetSdk  : the version the app was tested against. Android uses it to
+ *               decide whether to apply backward-compatibility behaviours.
+ *  applicationId : the app's permanent, unique identity on a device and in the
+ *               Play Store. Independent of the Java package `namespace`.
+ * =============================================================================
+ */
+
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    /*
+     * `namespace` is the Java/Kotlin package used to generate the R class and
+     * BuildConfig. It replaces the old `package` attribute in AndroidManifest.
+     */
+    namespace 'com.hcrobotics.testapp'
+
+    /*
+     * API 35 = Android 15. Compiling against the latest installed platform.
+     */
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.hcrobotics.testapp"
+
+        // API 24 = Android 7.0 Nougat. Covers >97% of active devices while
+        // still allowing modern APIs without heavy compatibility shims.
+        minSdk 24
+        targetSdk 35
+
+        // versionCode : monotonically increasing integer used by the Play Store
+        //               to decide what constitutes an "update".
+        // versionName : human-readable string shown in Settings > Apps.
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Restrict packaged translations to the locales we actually ship.
+        resourceConfigurations += ["en"]
+    }
+
+    buildTypes {
+        debug {
+            /*
+             * The `.debug` suffix lets a debug build sit SIDE BY SIDE with a
+             * release build on the same device - invaluable when comparing
+             * behaviour between the two.
+             *
+             * NOTE: because of this, the installed debug package is
+             *       `com.hcrobotics.testapp.debug`, not `com.hcrobotics.testapp`.
+             */
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+
+            // No code/resource shrinking: keeps stack traces readable and
+            // keeps incremental builds fast.
+            minifyEnabled false
+            debuggable true
+        }
+
+        release {
+            // R8 removes unused code and renames what remains.
+            minifyEnabled true
+            // Strips resources no longer referenced after code shrinking.
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+
+            /*
+             * Deliberately NOT signed with a release key here. Wire up a real
+             * `signingConfigs { }` block (reading credentials from
+             * local.properties or environment variables) before publishing.
+             */
+        }
+    }
+
+    compileOptions {
+        // Java 17 language level - matches the JDK bundled with Android Studio.
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        /*
+         * View Binding generates a type-safe binding class per XML layout
+         * (activity_main.xml -> ActivityMainBinding). It eliminates
+         * findViewById() casts and the class of NullPointerException caused by
+         * referencing a view that does not exist in the current layout variant.
+         */
+        viewBinding true
+
+        /*
+         * Generates the BuildConfig class, which exposes BuildConfig.DEBUG and
+         * BuildConfig.VERSION_NAME to application code (used by AppLogger and
+         * the splash screen's version label).
+         */
+        buildConfig true
+    }
+
+    /*
+     * Emit APKs with descriptive file names, e.g.
+     *   HCRobotics-1.0.0-debug.apk
+     * instead of the default `app-debug.apk`.
+     */
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            // `defaultConfig.versionName` is used rather than `variant.versionName`
+            // because the latter already carries the build type's versionNameSuffix
+            // (e.g. "1.0.0-debug"), which would repeat the build type in the name.
+            output.outputFileName =
+                    "HCRobotics-${android.defaultConfig.versionName}-${variant.buildType.name}.apk"
+        }
+    }
+
+    packaging {
+        resources {
+            // Duplicate licence/metadata files from transitive dependencies
+            // would otherwise fail packaging.
+            excludes += ['/META-INF/{AL2.0,LGPL2.1}']
+        }
+    }
+}
+
+dependencies {
+    // --- UI foundation -------------------------------------------------------
+    implementation libs.androidx.appcompat        // AppCompatActivity, DayNight themes
+    implementation libs.google.material           // Material 3 components + theme overlays
+    implementation libs.androidx.constraintlayout // Flat, performant layout engine
+
+    // --- Local JVM unit tests (src/test) -------------------------------------
+    testImplementation libs.junit
+
+    // --- Instrumented tests running on a device (src/androidTest) ------------
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+}

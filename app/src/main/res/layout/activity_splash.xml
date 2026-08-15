@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  activity_splash.xml  |  Layout for SplashActivity
+ =============================================================================
+
+  WHAT IS ON SCREEN
+  =================
+    * The HC ROBOTICS wordmark, centred.
+    * The build version, pinned above the bottom edge.
+
+  WHY THE LOGO IS DRAWN TWICE (HERE AND IN bg_splash.xml)
+  =======================================================
+  @drawable/bg_splash paints the logo before this layout exists, so the branded
+  frame appears instantly on a cold start. This layout then paints the SAME
+  logo, at the SAME size (both read @dimen/splash_logo_width / _height), in the
+  SAME position. The swap from window background to inflated layout is therefore
+  pixel-identical and completely invisible to the user.
+
+  WHY ConstraintLayout
+  ====================
+  ConstraintLayout positions children by relationship ("centre in parent",
+  "above the bottom margin") rather than by nesting containers inside one
+  another. The resulting hierarchy is FLAT, which means fewer measure/layout
+  passes and better performance - and the layout adapts to any screen size
+  without a second XML file.
+
+  READING A CONSTRAINT
+  ====================
+    app:layout_constraintTop_toTopOf="parent"
+     ^        ^              ^     ^
+     |        |              |     +== ...the TOP edge of the parent.
+     |        |              +======== ...is aligned to...
+     |        +======================= MY top edge...
+     +================================ (namespace for library attributes)
+
+  Constraining a view on opposite sides (top+bottom, or start+end) centres it
+  between them.
+ =============================================================================
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/splash_background"
+    tools:context=".ui.splash.SplashActivity">
+
+    <!--
+      The brand mark.
+
+      android:contentDescription supplies the text a screen reader announces in
+      place of the image. Because the logo carries meaning (it identifies the
+      app), it must be described rather than marked decorative.
+
+      adjustViewBounds="true" makes the view honour the drawable's aspect ratio,
+      as an extra guarantee against distortion.
+    -->
+    <ImageView
+        android:id="@+id/image_splash_logo"
+        android:layout_width="@dimen/splash_logo_width"
+        android:layout_height="@dimen/splash_logo_height"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/cd_company_logo"
+        android:scaleType="fitCenter"
+        android:src="@drawable/img_hc_robotics_wordmark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
+      Build version label.
+
+      The text is set at runtime by SplashActivity, which formats
+      R.string.splash_version_format with BuildConfig.VERSION_NAME.
+
+      tools:text is a DESIGN-TIME-ONLY attribute: Android Studio's preview shows
+      it so the layout is not empty while editing, but it is stripped from the
+      APK and never appears on a device.
+    -->
+    <TextView
+        android:id="@+id/text_splash_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_extra_large"
+        android:textColor="@color/neutral_grey_600"
+        android:textSize="@dimen/text_size_caption"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Version 1.0.0-debug" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  values/themes.xml  |  Application themes (LIGHT / default configuration)
+ =============================================================================
+
+  WHAT A THEME IS
+  ===============
+  A theme is a collection of named attributes that every view in the hierarchy
+  can look up. When a layout writes `?attr/colorPrimary`, the framework resolves
+  it against the theme that is active at that moment. Change the theme and the
+  whole UI re-colours, without a single layout edit.
+
+  THE THREE-STYLE STRUCTURE USED HERE
+  ===================================
+    Base.Theme.HCRobotics    All the actual attribute values live here.
+    Theme.HCRobotics         The name the manifest points at. Empty on purpose.
+    Theme.HCRobotics.Splash  A variant, inheriting from Theme.HCRobotics.
+
+  Why the seemingly redundant middle layer? It creates a place to add
+  API-level-specific tweaks later (values-v31/themes.xml can redefine
+  Theme.HCRobotics with dynamic colour) without duplicating the entire base.
+  This is the structure Android Studio's own project templates generate.
+
+  DOT-NOTATION INHERITANCE
+  ========================
+  `Theme.HCRobotics.Splash` implicitly inherits from `Theme.HCRobotics`, purely
+  because of the shared name prefix. No `parent` attribute is required.
+
+  DARK MODE
+  =========
+  The counterpart file at values-night/themes.xml overrides the colour choices
+  when the device is in dark mode. Android picks the right one automatically —
+  no runtime check anywhere in the code.
+ =============================================================================
+-->
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Base application theme.
+
+      Parent: Theme.Material3.DayNight.NoActionBar
+        Material3  - the current Material Design component styling.
+        DayNight   - allows values-night/ to swap the palette automatically.
+        NoActionBar- suppresses the legacy title bar; screens supply their own
+                     toolbar when they need one. Cleaner and more flexible.
+    -->
+    <style name="Base.Theme.HCRobotics" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- ==== Primary: the dominant brand colour, used for key components ==== -->
+        <item name="colorPrimary">@color/brand_blue</item>
+        <item name="colorOnPrimary">@color/neutral_white</item>
+        <item name="colorPrimaryContainer">@color/brand_blue_light</item>
+        <item name="colorOnPrimaryContainer">@color/brand_blue_dark</item>
+
+        <!-- ==== Secondary: the accent, used to draw the eye to a highlight ==== -->
+        <item name="colorSecondary">@color/brand_orange</item>
+        <item name="colorOnSecondary">@color/neutral_white</item>
+
+        <!-- ==== Surfaces: sheets, cards and the page itself ==== -->
+        <item name="android:colorBackground">@color/neutral_white</item>
+        <item name="colorSurface">@color/neutral_white</item>
+        <item name="colorOnSurface">@color/neutral_grey_900</item>
+        <item name="colorOnSurfaceVariant">@color/neutral_grey_600</item>
+        <item name="colorOutline">@color/neutral_grey_300</item>
+
+        <!-- ==== System bars ==== -->
+        <!--
+          A dark status bar with light icons keeps the brand colour visible at
+          the top of every screen.
+        -->
+        <item name="android:statusBarColor">@color/brand_blue_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!--
+      The theme the manifest actually applies. Intentionally empty: it exists so
+      that API-level-specific overrides can be introduced in values-vNN/ without
+      restructuring anything.
+    -->
+    <style name="Theme.HCRobotics" parent="Base.Theme.HCRobotics" />
+
+    <!--
+      Splash-screen theme.
+
+      The important line is `android:windowBackground`. The system draws that
+      drawable as soon as the window is created — before the app process has
+      finished starting and long before onCreate() inflates a layout. Because
+      @drawable/bg_splash already contains the logo, the branded frame is on
+      screen from the first rendered pixel and there is no white flash.
+
+      `windowFullscreen` hides the status bar for an uninterrupted brand moment;
+      the bar returns automatically on MainActivity, which uses the normal theme.
+
+      tools:targetApi suppresses a lint note about the fullscreen attribute; the
+      value is honoured on every supported API level here.
+    -->
+    <style name="Theme.HCRobotics.Splash">
+        <item name="android:windowBackground">@drawable/bg_splash</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
+</resources>

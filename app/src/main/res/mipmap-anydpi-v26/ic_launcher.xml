@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  ic_launcher.xml  |  Adaptive launcher icon (Android 8.0 / API 26 and above)
+ =============================================================================
+
+  WHAT AN ADAPTIVE ICON IS
+  ========================
+  From API 26 onward, an icon is supplied as two separate 108x108dp layers -
+  a background and a foreground. The LAUNCHER, not the app, decides the outline
+  and applies it as a mask to both layers together. That is how the same icon
+  renders as a circle on one device, a squircle on another, and a rounded square
+  on a third, without the app shipping three artworks.
+
+  THE SAFE ZONE : THE ONE RULE THAT MATTERS
+  =========================================
+  Only the centre 66x66dp of the 108x108dp canvas is guaranteed to be visible.
+  The outer 18dp on each side is reserved so the launcher can crop, and can
+  animate the layers in parallax when the icon is dragged.
+
+  The foreground PNGs are generated with the HC mark scaled to 58% of the
+  canvas - comfortably inside that 66dp safe zone.
+
+  WHY THE FOLDER IS CALLED `mipmap-anydpi-v26`
+  ============================================
+    anydpi : this XML has no density of its own; it points at density-specific
+             PNGs, which the system picks per device.
+    v26    : only used on API 26+. Older devices skip this file entirely and
+             fall back to mipmap-<density>/ic_launcher.png.
+
+  WHY `mipmap/` AND NOT `drawable/`
+  =================================
+  Launcher icons must live in mipmap. Resource shrinking strips unused
+  densities from drawable/, but keeps all of them in mipmap/ - which matters
+  because a launcher often requests an icon at a HIGHER density than the device
+  itself, to render it crisply on the home screen.
+ =============================================================================
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background layer: the flat brand surface. Must fill the whole canvas. -->
+    <background android:drawable="@color/ic_launcher_background" />
+
+    <!-- Foreground layer: the HC mark, already inset into the safe zone. -->
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+
+    <!--
+      Monochrome layer (Android 13 / API 33+). Powers "themed icons", where the
+      launcher re-tints the app icon to match the user's wallpaper palette. Only
+      the ALPHA channel of this drawable is used, so reusing the coloured
+      foreground yields a correctly shaped silhouette.
+    -->
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
+
+</adaptive-icon>

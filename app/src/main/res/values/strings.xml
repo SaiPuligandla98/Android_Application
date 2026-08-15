@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  strings.xml  |  Every user-visible string in the application
+ =============================================================================
+
+  RULE: no user-facing text is ever hard-coded in Java or in a layout. It all
+  lives here.
+
+  WHY THIS RULE EARNS ITS KEEP
+  ============================
+  * Translation. Adding Hindi is `values-hi/strings.xml` with the same keys —
+    no source file is touched, so no logic can regress.
+  * Consistency. A term is defined once, so it cannot drift between screens.
+  * Review. A copy change is a diff in one file, readable by a non-programmer.
+  * Accessibility. Content descriptions read by TalkBack live beside
+    the visible copy, so they are far less likely to be forgotten.
+
+  NAMING CONVENTION
+  =================
+    <screen>_<purpose>       e.g. splash_version_format
+    cd_<thing>               content description, for screen readers only
+    Suffix `_format` marks a string containing printf-style placeholders.
+ =============================================================================
+-->
+<resources>
+
+    <!--
+      The application name, shown under the launcher icon, in the app switcher
+      and throughout system Settings. Referenced by android:label in the manifest.
+    -->
+    <string name="app_name">HC Robotics</string>
+
+    <!-- ==================== Splash screen ==================== -->
+
+    <!--
+      Build version shown in the bottom corner of the splash screen.
+      %1$s is substituted with BuildConfig.VERSION_NAME at runtime.
+      The positional form (%1$s rather than %s) is required so translators can
+      reorder placeholders freely.
+    -->
+    <string name="splash_version_format">Version %1$s</string>
+
+    <!--
+      Spoken by TalkBack in place of the logo image. Describes what the image
+      conveys, not what it literally is — never "logo image" or "picture of".
+    -->
+    <string name="cd_company_logo">HC Robotics company logo</string>
+
+    <!-- ==================== Main screen ==================== -->
+
+    <!-- The landing screen's welcome message. -->
+    <string name="main_welcome_message">Welcome to HC Robotics Android Application</string>
+
+</resources>

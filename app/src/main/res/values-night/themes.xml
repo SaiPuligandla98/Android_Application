@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  values-night/themes.xml  |  Application theme, DARK MODE configuration
+ =============================================================================
+
+  HOW THIS FILE IS SELECTED
+  =========================
+  `-night` is a resource qualifier. When the device is in dark mode, Android
+  resolves @style/Base.Theme.HCRobotics to the definition in THIS file instead
+  of the one in values/themes.xml. There is no runtime check, no if-statement
+  and no code path to test — the resource system does the switching.
+
+  WHAT CHANGES, AND WHAT DELIBERATELY DOES NOT
+  ============================================
+  Only surface and text colours flip. The brand hues shift to lighter tints so
+  they remain legible against a dark background, but they stay recognisably HC
+  Robotics blue and orange.
+
+  The splash screen is intentionally NOT darkened — see the note on
+  @color/splash_background in values/colors.xml for the reasoning.
+
+  KEEP THE KEYS IN SYNC
+  =====================
+  Every attribute defined in values/themes.xml should also appear here.
+  A key present in one file but missing from the other is the usual cause of
+  "unreadable text in dark mode" bugs.
+ =============================================================================
+-->
+<resources>
+
+    <style name="Base.Theme.HCRobotics" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- ==== Primary ==== -->
+        <!--
+          The lighter blue tint is used as the primary in dark mode: the deep
+          brand blue does not carry enough contrast against a near-black
+          surface to satisfy WCAG AA for text and icons.
+        -->
+        <item name="colorPrimary">@color/brand_blue_light</item>
+        <item name="colorOnPrimary">@color/brand_blue_dark</item>
+        <item name="colorPrimaryContainer">@color/brand_blue_dark</item>
+        <item name="colorOnPrimaryContainer">@color/brand_blue_light</item>
+
+        <!-- ==== Secondary ==== -->
+        <item name="colorSecondary">@color/brand_orange</item>
+        <item name="colorOnSecondary">@color/neutral_black</item>
+
+        <!-- ==== Surfaces ==== -->
+        <item name="android:colorBackground">@color/neutral_grey_900</item>
+        <item name="colorSurface">@color/neutral_grey_800</item>
+        <item name="colorOnSurface">@color/neutral_white</item>
+        <item name="colorOnSurfaceVariant">@color/neutral_grey_300</item>
+        <item name="colorOutline">@color/neutral_grey_600</item>
+
+        <!-- ==== System bars ==== -->
+        <item name="android:statusBarColor">@color/neutral_grey_900</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+</resources>
