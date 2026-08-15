@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  drawable-night/bg_update_badge.xml  |  Update badge, dark mode
+ =============================================================================
+
+  Identical to the light version except for the stroke colour.
+
+  The stroke exists to punch a gap between the dot and the gear icon beneath it.
+  That only works if it matches the screen behind it - a white ring on a dark
+  screen would look like a deliberate white outline rather than a gap, which is
+  worse than having no ring at all.
+
+  Selected automatically by the resource system when the device is in dark mode.
+ =============================================================================
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <solid android:color="@color/brand_orange" />
+
+    <stroke
+        android:width="2dp"
+        android:color="@color/neutral_grey_900" />
+
+    <size
+        android:width="@dimen/update_badge_size"
+        android:height="@dimen/update_badge_size" />
+
+</shape>

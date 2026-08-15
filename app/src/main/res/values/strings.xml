@@ -88,20 +88,63 @@
     -->
     <string name="settings_version_format">%1$s (build %2$d)</string>
 
-    <string name="settings_section_updates">UPDATES</string>
-    <string name="settings_update_available">Update available</string>
-    <string name="settings_update_version_format">Version %1$s — tap to install</string>
-    <string name="settings_update_none">No update available</string>
-    <string name="settings_update_none_subtitle">This device is running the latest published version.</string>
+    <!-- ==================== Status block ==================== -->
+
     <string name="settings_row_check_updates">Check for updates</string>
 
-    <!-- %1$d is the configured interval in hours. -->
-    <string name="settings_check_interval_format">Checks automatically about every %1$d hours</string>
+    <!-- The headline answer. -->
+    <string name="settings_status_up_to_date">Your app is up to date</string>
+    <string name="settings_status_update_available">Update available</string>
+    <string name="settings_status_checking">Checking for updates…</string>
 
-    <string name="settings_section_rollback">ROLLBACK</string>
+    <!--
+      Supporting detail beneath the headline.
+      %1$s = version name, %2$d = version code, %3$s = last-checked phrase.
+    -->
+    <string name="settings_status_detail_format">Version %1$s (build %2$d)\nLast checked: %3$s</string>
+
+    <!--
+      Relative times. Absolute timestamps ("14:32 on 15 Aug") make the reader do
+      arithmetic; "3 minutes ago" is the answer they actually wanted.
+    -->
+    <string name="settings_last_checked_never">never</string>
+    <string name="settings_last_checked_just_now">just now</string>
+    <string name="settings_last_checked_minutes">%1$d minutes ago</string>
+    <string name="settings_last_checked_hours">%1$d hours ago</string>
+    <string name="settings_last_checked_days">%1$d days ago</string>
+
+    <!-- ==================== Available update ==================== -->
+
+    <string name="settings_section_available_update">AVAILABLE UPDATE</string>
+    <string name="settings_available_version_format">Version %1$s</string>
+    <string name="settings_available_size_format">Download size: %1$s</string>
+    <string name="settings_action_download_install">Download and install</string>
+
+    <!-- ==================== Problems ==================== -->
+
+    <!--
+      Surfaced only when true. Both of these fail SILENTLY on a device, so
+      naming them here is the only way a user ever finds out.
+    -->
+    <string name="settings_notifications_off_title">Notifications are turned off</string>
+    <string name="settings_notifications_off_subtitle">You will not be told when an update is ready. Tap to turn them on.</string>
+
+    <string name="settings_install_permission_title">Installing updates is not allowed</string>
+    <string name="settings_install_permission_subtitle">Android needs permission before this app can install an update. Tap to grant it.</string>
+
+    <!-- ==================== Notifications ==================== -->
+
+    <string name="settings_section_notifications">NOTIFICATIONS</string>
+    <string name="settings_row_notifications">Update notifications</string>
+    <string name="settings_notifications_enabled">Enabled — you will be told when an update is ready</string>
+    <string name="settings_notifications_disabled">Disabled — tap to turn on</string>
+
+    <!-- ==================== Advanced / rollback ==================== -->
+
+    <string name="settings_section_advanced">ADVANCED</string>
     <string name="settings_row_rollback">Go back one version</string>
     <string name="settings_rollback_version_format">Restore version %1$s</string>
-    <string name="settings_rollback_unavailable">Nothing to go back to yet. A rollback becomes available once a second version has been published.</string>
+    <string name="settings_rollback_unavailable">Not available. A rollback needs an earlier published version to return to.</string>
 
     <!--
       Standing warning, shown whenever rollback is available. The constraint is

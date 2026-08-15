@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  bg_update_badge.xml  |  The dot shown on the settings gear
+ =============================================================================
+
+  A filled circle with a ring of the surrounding background colour around it.
+
+  WHY THE RING MATTERS
+  ====================
+  The badge sits directly on top of the gear icon. Without a border it merges
+  visually with the icon's own strokes and reads as part of the artwork rather
+  than as a separate indicator.
+
+  A stroke in the SCREEN's background colour punches a small gap around the dot,
+  which makes it read as floating above the icon. Every platform badge is drawn
+  this way for the same reason.
+
+  Using the brand orange rather than the usual red is deliberate: an available
+  update is an invitation, not an error.
+ =============================================================================
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <solid android:color="@color/brand_orange" />
+
+    <!--
+      The gap that separates the dot from the icon beneath it. `?attr/` is not
+      permitted inside a shape's stroke on older platforms, so the colour is
+      referenced concretely; it matches the light-theme background and is
+      overridden by drawable-night for dark mode.
+    -->
+    <stroke
+        android:width="2dp"
+        android:color="@color/neutral_white" />
+
+    <size
+        android:width="@dimen/update_badge_size"
+        android:height="@dimen/update_badge_size" />
+
+</shape>

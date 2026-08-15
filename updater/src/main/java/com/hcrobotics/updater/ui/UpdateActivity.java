@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -164,6 +165,25 @@ public final class UpdateActivity extends AppCompatActivity {
             // Nothing to show. Closing is the honest response; an empty screen
             // would just leave the user stuck.
             UpdaterLog.e("UpdateActivity started without a valid update; closing", null);
+            finish();
+            return;
+        }
+
+        /*
+         * Refuse to "update" to a version already installed.
+         *
+         * Without this, tapping Update now on a stale notification reinstalls
+         * the running APK over itself. Android kills the app's process to
+         * replace it, which a user experiences as the app crashing - it simply
+         * disappears - and reopening shows the very same prompt again.
+         *
+         * A rollback is exempt: installing an OLDER version is the entire
+         * point there, so the comparison must not block it.
+         */
+        if (!isRollback && update.getVersionCode() <= AppVersion.installedVersionCode(this)) {
+            UpdaterLog.i("Version " + update.getVersionCode()
+                    + " is already installed; nothing to do");
+            Toast.makeText(this, R.string.updater_already_up_to_date, Toast.LENGTH_SHORT).show();
             finish();
             return;
         }

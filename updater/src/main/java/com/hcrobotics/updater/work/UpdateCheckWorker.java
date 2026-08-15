@@ -141,6 +141,11 @@ public final class UpdateCheckWorker extends Worker {
          */
         OtaUpdater.storeLastSeenManifest(context, update);
 
+        // Timestamp only a check that actually reached the server. Recording
+        // failed attempts would make a device with no connectivity look as
+        // though it were checking successfully, hiding the real problem.
+        OtaUpdater.storeLastCheckTime(context);
+
         // ---- Decision 1: is the published build actually newer? -------------
         if (update.getVersionCode() <= installedVersion) {
             UpdaterLog.i("Already up to date; nothing to do");

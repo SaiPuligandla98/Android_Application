@@ -8,6 +8,7 @@ import android.content.pm.PackageInstaller;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hcrobotics.updater.OtaUpdater;
 import com.hcrobotics.updater.notify.UpdateNotifier;
 
 /**
@@ -59,6 +60,18 @@ public final class InstallResultReceiver extends BroadcastReceiver {
 
             case PackageInstaller.STATUS_SUCCESS:
                 UpdaterLog.i("Update installed successfully");
+                /*
+                 * Forget the pending update, or the app keeps announcing a
+                 * version it is already running - and "Update now" would
+                 * reinstall the same APK over itself, killing the process in a
+                 * way users read as a crash.
+                 *
+                 * OtaUpdater.getPendingUpdate() ALSO compares against the
+                 * installed version, so a missed broadcast or a manual sideload
+                 * still self-corrects. Both belong here: this clears it
+                 * promptly, that guarantees it.
+                 */
+                OtaUpdater.clearPendingUpdate(context);
                 UpdateNotifier.cancelAll(context);
                 // No success notification: the app is about to be restarted by
                 // the system, and a notification about an update that already

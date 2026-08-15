@@ -70,6 +70,29 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!--
+      Update badge: a small coloured dot on the corner of the gear, shown only
+      while an update is waiting.
+
+      WHY A DOT RATHER THAN A COUNT OR A BANNER
+      A notification can be swiped away and forgotten; a banner takes over the
+      screen every launch. A dot is the quietest signal that survives - it says
+      "there is something in here" without ever interrupting, which is exactly
+      the right weight for an optional update.
+
+      Positioned by constraining its top and end to the gear's top and end, so
+      it tracks the icon rather than sitting at hard-coded coordinates.
+    -->
+    <View
+        android:id="@+id/view_update_badge"
+        android:layout_width="@dimen/update_badge_size"
+        android:layout_height="@dimen/update_badge_size"
+        android:background="@drawable/bg_update_badge"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/button_settings"
+        app:layout_constraintTop_toTopOf="@id/button_settings"
+        tools:visibility="visible" />
+
+    <!--
       The HC ROBOTICS brand mark, at the head of the chain.
 
       adjustViewBounds keeps the artwork's aspect ratio (1164x220) whatever
@@ -129,27 +152,22 @@
         android:gravity="center"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/text_size_body"
-        app:layout_constraintBottom_toTopOf="@id/button_check_updates"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
-        tools:text="Version 1.2.0" />
-
-    <!--
-      Runs an update check immediately, rather than waiting for the next
-      scheduled one. Tail of the chain.
-    -->
-    <Button
-        android:id="@+id/button_check_updates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_extra_large"
-        android:minHeight="@dimen/touch_target_min"
-        android:text="@string/main_action_check_updates"
-        android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_app_version" />
+        app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
+        tools:text="Version 1.4.0" />
+
+    <!--
+      NOTE: the "Check for updates" button that used to sit here has been
+      removed. Updates now reach the user two ways only:
+
+        * a notification, when a background check finds one, and
+        * the Settings screen, which is where a manual check belongs.
+
+      A landing screen whose main content is a maintenance button is a landing
+      screen with nothing to say. Keeping the update machinery in Settings
+      leaves this screen for the application itself.
+    -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

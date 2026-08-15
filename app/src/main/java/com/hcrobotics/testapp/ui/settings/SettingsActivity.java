@@ -1,6 +1,10 @@
 package com.hcrobotics.testapp.ui.settings;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Toast;
 
@@ -10,50 +14,68 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.hcrobotics.testapp.BuildConfig;
 import com.hcrobotics.testapp.R;
-import com.hcrobotics.testapp.core.config.AppConfig;
 import com.hcrobotics.testapp.core.util.AppLogger;
 import com.hcrobotics.testapp.databinding.ActivitySettingsBinding;
 import com.hcrobotics.testapp.ui.base.BaseActivity;
 import com.hcrobotics.updater.OtaUpdater;
 import com.hcrobotics.updater.UpdateInfo;
 
+import java.util.concurrent.TimeUnit;
+
 /**
- * Settings: build information, update control and rollback.
+ * Update control, modelled on Android's own "System update" screen.
  *
- * <h2>Why this screen exists</h2>
- * The update dialog is a moment; this is the permanent home. A user who taps
- * "Not now" must still be able to find and install the update afterwards, and a
- * dialog that keeps reappearing on every launch teaches people to dismiss
- * dialogs without reading them.
+ * <h2>Why that shape</h2>
+ * Every mature updater — Android System Update, Chrome, Windows Update — uses
+ * the same layout, because it answers the user's questions in the order they
+ * ask them:
  *
- * <p>So the dialog asks once per launch, and this screen offers the update
- * indefinitely until it is installed. That is the whole design: <b>ask politely,
- * then stay available</b>.</p>
+ * <ol>
+ *   <li><b>Am I up to date?</b> — one prominent status line.</li>
+ *   <li><b>How do you know?</b> — when it was last actually checked.</li>
+ *   <li><b>Check again.</b> — an explicit button.</li>
+ *   <li><b>What would I get?</b> — details, only when there is something.</li>
+ *   <li><b>Something is wrong.</b> — problems, only when there are any.</li>
+ *   <li><b>Take me back.</b> — rollback, below the fold.</li>
+ * </ol>
  *
- * <h2>Why it also offers a rollback</h2>
- * Over-the-air updates make shipping easy, which also makes shipping a bad
- * build easy. On a remote fleet the cost of that is high: a broken release on
- * fifty devices you cannot reach is a very long day.
+ * <h2>Why "last checked" earns its place</h2>
+ * "Up to date" on its own is unfalsifiable — it looks identical whether
+ * checking is working perfectly or has been broken for a week. Pairing it with
+ * "checked 3 minutes ago" makes the claim verifiable, and "checked 6 days ago"
+ * exposes a device whose checking has silently stopped. On a fleet you cannot
+ * physically reach, that one line is the difference between noticing and not.
  *
- * <p>The honest caveat is stated on the screen itself rather than discovered as
- * an error: Android normally refuses to install an older version over a newer
- * one, and only permits it for debuggable builds. On a release build the app
- * must be uninstalled first, which erases its data. Better to know that before
- * tapping than after.</p>
- *
- * <h2>State is read fresh in onResume</h2>
- * A background check can complete while this screen is open, and the user may
- * return from the update screen having installed something. Reading the state
- * in {@link #onResume()} rather than {@link #onCreate} means the screen is
- * never showing a stale answer.
+ * <h2>Edge cases handled here</h2>
+ * <ul>
+ *   <li>Notifications disabled → a visible warning row, not silent failure.</li>
+ *   <li>Install permission missing → likewise, with a tap-through to grant it.</li>
+ *   <li>Pending update already installed → filtered out by
+ *       {@code OtaUpdater.getPendingUpdate}, so the screen cannot offer it.</li>
+ *   <li>Rollback target equal to or newer than what is installed → hidden.</li>
+ *   <li>Rollback target below this device's API level → hidden.</li>
+ *   <li>No check ever completed → "Last checked: never" rather than a
+ *       misleading timestamp.</li>
+ * </ul>
  *
  * @author HC Robotics
- * @since 1.3.0
+ * @since 1.4.0
  */
 public final class SettingsActivity extends BaseActivity {
 
     /** Log tag for this screen. */
     private static final String TAG = "SettingsActivity";
+
+    /**
+     * How long a manual check is treated as "in progress" before the screen
+     * stops saying so.
+     *
+     * <p>The check runs in WorkManager and reports back through preferences
+     * rather than a callback, so there is nothing to await. Rather than invent
+     * a progress API for a request that finishes in under a second, the screen
+     * simply refreshes shortly afterwards.</p>
+     */
+    private static final long CHECK_FEEDBACK_DELAY_MS = 2_500L;
 
     /** Type-safe accessor for the views in {@code activity_settings.xml}. */
     private ActivitySettingsBinding binding;
@@ -66,84 +88,135 @@ public final class SettingsActivity extends BaseActivity {
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        bindStaticInformation();
+        binding.textAppNameValue.setText(getString(R.string.app_name));
+        binding.textPackageValue.setText(BuildConfig.APPLICATION_ID);
 
         binding.buttonBack.setOnClickListener(v -> finish());
-        binding.rowCheckUpdates.setOnClickListener(v -> checkForUpdates());
-        binding.rowUpdate.setOnClickListener(v -> OtaUpdater.openUpdateScreen(this));
+        binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdates());
+        binding.buttonInstallUpdate.setOnClickListener(v -> OtaUpdater.openUpdateScreen(this));
+        binding.rowNotifications.setOnClickListener(v -> openNotificationSettings());
+        binding.rowNotificationsWarning.setOnClickListener(v -> openNotificationSettings());
+        binding.rowInstallWarning.setOnClickListener(v -> openInstallPermissionSettings());
         binding.rowRollback.setOnClickListener(v -> confirmRollback());
 
         AppLogger.i(TAG, "Settings opened");
     }
 
     /**
-     * Refreshes everything that can change while this screen is open.
+     * Rebuilds the whole screen from current state.
      *
-     * <p>A background check may finish at any moment, and the user may return
-     * here after installing something. Re-reading on resume is what keeps the
-     * screen honest.</p>
+     * <p>Everything shown here can change while the screen is open: a check may
+     * complete, the user may return from a system settings page having granted
+     * a permission, or an install may finish. Re-reading on every resume is what
+     * keeps the screen from confidently displaying a stale answer.</p>
      */
     @Override
     protected void onResume() {
         super.onResume();
-        bindUpdateState();
-        bindRollbackState();
+        refresh();
+    }
+
+    /** Re-reads every piece of state and updates the UI to match. */
+    private void refresh() {
+        if (binding == null) {
+            return;
+        }
+        bindStatus();
+        bindAvailableUpdate();
+        bindWarnings();
+        bindNotificationState();
+        bindRollback();
     }
 
     /**
-     * Fills in the values that cannot change while the app is running.
-     *
-     * <p>The version deliberately shows BOTH the name and the code. The name is
-     * what a user reports; the code is what actually decides whether an update
-     * applies. Seeing them together is what makes "why isn't it updating?"
-     * answerable at a glance.</p>
+     * Fills in the headline status block.
      */
-    private void bindStaticInformation() {
-        binding.textAppNameValue.setText(getString(R.string.app_name));
-        binding.textInstalledVersionValue.setText(getString(
-                R.string.settings_version_format,
-                BuildConfig.VERSION_NAME,
-                BuildConfig.VERSION_CODE));
-        binding.textPackageValue.setText(BuildConfig.APPLICATION_ID);
-    }
-
-    /**
-     * Shows whether an update is waiting, and makes that row tappable only if
-     * one actually is.
-     *
-     * <p>A disabled row does not ripple, which is the clearest possible signal
-     * that there is nothing behind it. Leaving it tappable and doing nothing is
-     * how users conclude an app is broken.</p>
-     */
-    private void bindUpdateState() {
+    private void bindStatus() {
         final UpdateInfo pending = OtaUpdater.getPendingUpdate(this);
 
-        if (pending != null) {
-            binding.textUpdateTitle.setText(R.string.settings_update_available);
-            binding.textUpdateSubtitle.setText(getString(
-                    R.string.settings_update_version_format, pending.getVersionName()));
-            binding.rowUpdate.setEnabled(true);
-        } else {
-            binding.textUpdateTitle.setText(R.string.settings_update_none);
-            binding.textUpdateSubtitle.setText(R.string.settings_update_none_subtitle);
-            binding.rowUpdate.setEnabled(false);
-        }
+        binding.textStatusTitle.setText(pending != null
+                ? R.string.settings_status_update_available
+                : R.string.settings_status_up_to_date);
 
-        binding.textLastChecked.setText(getString(
-                R.string.settings_check_interval_format, AppConfig.UPDATE_CHECK_INTERVAL_HOURS));
+        binding.textStatusSubtitle.setText(getString(
+                R.string.settings_status_detail_format,
+                BuildConfig.VERSION_NAME,
+                BuildConfig.VERSION_CODE,
+                formatLastChecked()));
     }
 
     /**
-     * Shows the rollback target, or hides the option when there is none.
+     * Shows the available-update card, or hides it when nothing is waiting.
      *
-     * <p>There is nothing to roll back to until at least two versions have been
-     * published, so the whole section disappears rather than offering a button
-     * that cannot work.</p>
+     * <p>{@code OtaUpdater.getPendingUpdate} already discards a record whose
+     * version is at or below the installed one, so this card can never offer an
+     * "update" to the version already running — the bug that previously made
+     * the app reinstall itself and appear to crash.</p>
      */
-    private void bindRollbackState() {
+    private void bindAvailableUpdate() {
+        final UpdateInfo pending = OtaUpdater.getPendingUpdate(this);
+
+        if (pending == null) {
+            binding.cardUpdateDetails.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.cardUpdateDetails.setVisibility(View.VISIBLE);
+        binding.textAvailableVersion.setText(getString(
+                R.string.settings_available_version_format, pending.getVersionName()));
+
+        final String size = pending.getFormattedSize();
+        if (size.isEmpty()) {
+            binding.textAvailableSize.setVisibility(View.GONE);
+        } else {
+            binding.textAvailableSize.setVisibility(View.VISIBLE);
+            binding.textAvailableSize.setText(getString(
+                    R.string.settings_available_size_format, size));
+        }
+
+        if (pending.getReleaseNotes().isEmpty()) {
+            binding.textAvailableNotes.setVisibility(View.GONE);
+        } else {
+            binding.textAvailableNotes.setVisibility(View.VISIBLE);
+            binding.textAvailableNotes.setText(pending.getReleaseNotes());
+        }
+    }
+
+    /**
+     * Surfaces the two conditions that break updates silently.
+     *
+     * <p>Both of these fail with no error, no dialog and no log entry on the
+     * device. Naming them on this screen is the only way a user ever discovers
+     * why updates stopped arriving.</p>
+     */
+    private void bindWarnings() {
+        binding.rowNotificationsWarning.setVisibility(
+                OtaUpdater.canPostNotifications(this) ? View.GONE : View.VISIBLE);
+
+        binding.rowInstallWarning.setVisibility(
+                OtaUpdater.needsInstallPermission(this) ? View.VISIBLE : View.GONE);
+    }
+
+    /** Shows whether update notifications would actually be delivered. */
+    private void bindNotificationState() {
+        binding.textNotificationsState.setText(OtaUpdater.canPostNotifications(this)
+                ? R.string.settings_notifications_enabled
+                : R.string.settings_notifications_disabled);
+    }
+
+    /**
+     * Shows the rollback target, or disables the row when going back is not
+     * genuinely possible.
+     *
+     * <p>{@code OtaUpdater.canRollBack} checks all three conditions at once: a
+     * previous release exists, it is actually older than what is installed, and
+     * this device meets its minSdk. Offering a control that cannot work is
+     * worse than not offering it.</p>
+     */
+    private void bindRollback() {
         final UpdateInfo previousRelease = OtaUpdater.getPreviousVersion(this);
 
-        if (previousRelease == null) {
+        if (!OtaUpdater.canRollBack(this) || previousRelease == null) {
             binding.rowRollback.setEnabled(false);
             binding.textRollbackSubtitle.setText(R.string.settings_rollback_unavailable);
             binding.textRollbackNote.setVisibility(View.GONE);
@@ -157,49 +230,118 @@ public final class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * Runs an immediate update check.
+     * Renders the last-checked time as a relative phrase.
      *
-     * <p>If something is already pending there is nothing to discover, so the
-     * update screen opens directly instead of making the user wait for a check
-     * that would only find what is already known.</p>
+     * <p>Relative beats absolute here. "14:32 on 15 August" makes the reader do
+     * arithmetic; "3 minutes ago" is the answer they wanted. The thresholds are
+     * coarse on purpose — nobody needs second-level precision about an update
+     * check.</p>
+     *
+     * @return a phrase such as "just now", "4 hours ago" or "never"
+     */
+    @NonNull
+    private String formatLastChecked() {
+        final long lastCheck = OtaUpdater.getLastCheckTime(this);
+        if (lastCheck <= 0L) {
+            return getString(R.string.settings_last_checked_never);
+        }
+
+        final long elapsed = System.currentTimeMillis() - lastCheck;
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(elapsed);
+
+        if (minutes < 1) {
+            return getString(R.string.settings_last_checked_just_now);
+        }
+        if (minutes < 60) {
+            return getString(R.string.settings_last_checked_minutes, minutes);
+        }
+
+        final long hours = TimeUnit.MILLISECONDS.toHours(elapsed);
+        if (hours < 24) {
+            return getString(R.string.settings_last_checked_hours, hours);
+        }
+        return getString(R.string.settings_last_checked_days,
+                TimeUnit.MILLISECONDS.toDays(elapsed));
+    }
+
+    /**
+     * Runs an immediate check and refreshes the screen once it has had time to
+     * complete.
+     *
+     * <p>The check is handed to WorkManager and reports back through
+     * preferences, so there is nothing to await. Showing "Checking…" and
+     * refreshing a moment later is honest and far simpler than inventing a
+     * progress API for a request that finishes in under a second.</p>
      */
     private void checkForUpdates() {
-        if (OtaUpdater.getPendingUpdate(this) != null) {
-            OtaUpdater.openUpdateScreen(this);
-            return;
-        }
-        AppLogger.i(TAG, "Manual update check requested from Settings");
-        Toast.makeText(this, R.string.main_update_check_started, Toast.LENGTH_SHORT).show();
+        AppLogger.i(TAG, "Manual update check requested");
+        binding.textStatusTitle.setText(R.string.settings_status_checking);
+        binding.buttonCheckUpdates.setEnabled(false);
+
         OtaUpdater.checkNow(this);
+
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing()) {
+                return;
+            }
+            binding.buttonCheckUpdates.setEnabled(true);
+            refresh();
+        }, CHECK_FEEDBACK_DELAY_MS);
+    }
+
+    /**
+     * Opens the system notification settings for this app.
+     *
+     * <p>Notification permission cannot be re-requested once the user has
+     * denied it twice — Android stops showing the dialog entirely. Sending them
+     * to the settings page is then the only route, which is why this is a
+     * navigation rather than a permission request.</p>
+     */
+    private void openNotificationSettings() {
+        try {
+            final Intent intent;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            } else {
+                intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + getPackageName()));
+            }
+            startActivity(intent);
+        } catch (Exception e) {
+            AppLogger.e(TAG, "Could not open notification settings", e);
+            Toast.makeText(this, R.string.settings_notifications_disabled,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** Opens the "install unknown apps" settings page for this app. */
+    private void openInstallPermissionSettings() {
+        try {
+            startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:" + getPackageName())));
+        } catch (Exception e) {
+            AppLogger.e(TAG, "Could not open the install-permission settings", e);
+        }
     }
 
     /**
      * Confirms a rollback before starting it.
      *
-     * <p>Going backwards is genuinely destructive in a way updating is not: if
-     * the platform refuses the downgrade, the only route back is uninstalling
-     * the app and losing its data. The confirmation says so in full rather than
+     * <p>Going backwards is destructive in a way updating is not: if the
+     * platform refuses the downgrade, the only route back is uninstalling the
+     * app and losing its data. The confirmation states that plainly rather than
      * letting the user find out from a failure message.</p>
      */
     private void confirmRollback() {
         final UpdateInfo previousRelease = OtaUpdater.getPreviousVersion(this);
-        if (previousRelease == null) {
+        if (previousRelease == null || !OtaUpdater.canRollBack(this)) {
             return;
         }
 
-        /*
-         * These strings live in the :updater module and must be fully
-         * qualified.
-         *
-         * `android.nonTransitiveRClass=true` in gradle.properties means the
-         * app's own R class contains ONLY the app's resources - a library's
-         * resources are reached through that library's R. It makes builds
-         * faster and dependencies honest, at the cost of writing the package
-         * out in full here.
-         *
-         * Reusing the module's copy rather than duplicating it keeps the
-         * rollback warning identical wherever it appears.
-         */
+        // These strings belong to the :updater module and must be fully
+        // qualified: nonTransitiveRClass keeps library resources out of the
+        // app's own R class.
         new AlertDialog.Builder(this)
                 .setTitle(com.hcrobotics.updater.R.string.updater_rollback_title)
                 .setMessage(getString(com.hcrobotics.updater.R.string.updater_rollback_message,
