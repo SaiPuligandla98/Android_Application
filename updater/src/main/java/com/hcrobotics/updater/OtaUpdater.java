@@ -148,8 +148,34 @@ public final class OtaUpdater {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 request);
 
+        /*
+         * Run a check NOW as well as scheduling the recurring one.
+         *
+         * WHY THIS IS NOT REDUNDANT
+         * -------------------------
+         * A PeriodicWorkRequest does NOT run when it is enqueued. WorkManager is
+         * free to place the first execution anywhere inside the first interval,
+         * and in practice it usually lands near the END of it. A six-hour
+         * interval therefore means a freshly installed device can sit for most
+         * of a day before its very first update check.
+         *
+         * That was measured, not assumed: on a real device the first run was
+         * scheduled for "+5h47m" after install.
+         *
+         * For a fleet deployed in the field that behaviour is unacceptable. A
+         * device that has just been switched on, or an app the user has just
+         * opened, should learn about a waiting update in seconds - not
+         * eventually.
+         *
+         * The one-shot costs a single HTTPS GET of a few hundred bytes, and
+         * `initialise()` is called once per process from Application.onCreate(),
+         * so it cannot run away with battery.
+         */
+        checkNow(appContext);
+
         UpdaterLog.i("OTA updater initialised | interval=" + config.getCheckIntervalHours()
-                + "h | unmeteredOnly=" + config.isRequireUnmeteredNetwork());
+                + "h | unmeteredOnly=" + config.isRequireUnmeteredNetwork()
+                + " | immediate check requested");
     }
 
     /**
