@@ -58,4 +58,13 @@
     -->
     <string name="main_version_format">Version %1$s</string>
 
+    <!-- Button that runs an update check immediately. -->
+    <string name="main_action_check_updates">Check for updates</string>
+
+    <!-- Confirmation shown after tapping that button. -->
+    <string name="main_update_check_started">Checking for updates…</string>
+
+    <!-- Shown when a check finds the app is already current. -->
+    <string name="main_update_none">You are on the latest version.</string>
+
 </resources>

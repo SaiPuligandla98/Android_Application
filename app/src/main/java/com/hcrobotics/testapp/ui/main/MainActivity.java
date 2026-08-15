@@ -1,9 +1,12 @@
 package com.hcrobotics.testapp.ui.main;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.hcrobotics.updater.OtaUpdater;
 
 import com.hcrobotics.testapp.BuildConfig;
 import com.hcrobotics.testapp.R;
@@ -71,7 +74,59 @@ public final class MainActivity extends BaseActivity {
         binding.textAppVersion.setText(
                 getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
 
+        binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdatesNow());
+
         AppLogger.i(TAG, "Main screen ready");
+    }
+
+    /**
+     * Runs an over-the-air update check immediately.
+     *
+     * <p>The background check runs every few hours, and Android batches
+     * background work aggressively, so its real interval is "at least six
+     * hours". That is correct for battery life and useless when you are
+     * standing in front of a device wanting to confirm a rollout landed.</p>
+     *
+     * <p>This is the manual override, and on a remotely deployed fleet it is
+     * the difference between verifying a deployment in ten seconds and waiting
+     * half a day.</p>
+     *
+     * <p>{@link OtaUpdater#checkNow} returns immediately; the check itself runs
+     * on a background thread and posts a notification if it finds something. If
+     * an update is already known about, the update screen is opened directly
+     * rather than making the user wait for a second check to rediscover it.</p>
+     */
+    private void checkForUpdatesNow() {
+        if (OtaUpdater.getPendingUpdate(this) != null) {
+            AppLogger.i(TAG, "An update is already pending; opening the update screen");
+            OtaUpdater.openUpdateScreen(this);
+            return;
+        }
+
+        AppLogger.i(TAG, "Manual update check requested");
+        Toast.makeText(this, R.string.main_update_check_started, Toast.LENGTH_SHORT).show();
+        OtaUpdater.checkNow(this);
+    }
+
+    /**
+     * Re-checks for a discovered update whenever the screen comes forward.
+     *
+     * <p>A manual check is asynchronous: it is handed to WorkManager and
+     * completes a moment later on a background thread, so there is nothing to
+     * report at the instant the button is tapped.</p>
+     *
+     * <p>By the time the user next looks at this screen, the result exists.
+     * Opening the update screen here means they are not left wondering whether
+     * the button did anything, which is the usual complaint about
+     * "check for updates" buttons.</p>
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (OtaUpdater.getPendingUpdate(this) != null) {
+            AppLogger.i(TAG, "A pending update was found; offering it");
+            OtaUpdater.openUpdateScreen(this);
+        }
     }
 
     /**
