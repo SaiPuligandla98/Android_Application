@@ -1,18 +1,1 @@
-{
-    "versionCode":  5,
-    "versionName":  "1.4.0",
-    "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.4.0/HCRobotics-1.4.0-debug.apk",
-    "sha256":  "7b989445f1d53db3c0335e9f0e1bdc11b6ee3040ad5a6ed71b44895b48532ca0",
-    "sizeBytes":  6022998,
-    "minSdk":  24,
-    "mandatory":  false,
-    "releaseNotes":  "Fixes and improvements:\n- Fixed repeated notifications for a version already installed\n- Fixed the app closing when installing an update it already had\n- Rebuilt Settings: update status, last checked time, clear warnings\n- Update badge on the settings icon\n- Option to go back one version",
-    "publishedAt":  "2026-08-15T09:41:26Z",
-    "previous":  {
-                     "versionCode":  4,
-                     "versionName":  "1.3.0",
-                     "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.3.0/HCRobotics-1.3.0-debug.apk",
-                     "sha256":  "24c8e553a403d928689f9f5e8998c6d6bd6212e03251485a8df6f6b3734d87bb",
-                     "sizeBytes":  6015009
-                 }
-}
+{    "versionCode":  6,    "versionName":  "1.5.0",    "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.5.0/HCRobotics-1.5.0-debug.apk",    "sha256":  "ddd7bde7221bce067537ef7b0340e2ee92004f1abaa0f37d037a3c201c10ad72",    "sizeBytes":  6617479,    "minSdk":  24,    "mandatory":  false,    "releaseNotes":  "What\u0027s new:\n- New top bar with Home and Settings buttons on every screen\n- Home button returns you to the welcome screen from anywhere\n- Logo removed from the welcome screen (it is already on the splash)\n- Fixed the Settings button being unreachable in landscape\n- Fixed the Settings screen opening blank",    "publishedAt":  "2026-08-15T10:15:52Z",    "previous":  {                     "versionCode":  5,                     "versionName":  "1.4.0",                     "apkUrl":  "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.4.0/HCRobotics-1.4.0-debug.apk",                     "sha256":  "7b989445f1d53db3c0335e9f0e1bdc11b6ee3040ad5a6ed71b44895b48532ca0",                     "sizeBytes":  6022998                 }}
