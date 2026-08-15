@@ -70,4 +70,7 @@
     -->
     <dimen name="update_badge_size">10dp</dimen>
 
+    <!-- Corner radius of the outlined top-bar icon buttons. -->
+    <dimen name="icon_button_corner_radius">8dp</dimen>
+
 </resources>

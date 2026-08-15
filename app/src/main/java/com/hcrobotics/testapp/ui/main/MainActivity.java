@@ -102,8 +102,20 @@ public final class MainActivity extends BaseActivity {
         binding.textAppVersion.setText(
                 getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
 
-        binding.buttonSettings.setOnClickListener(v ->
+        binding.topBar.textTopBarTitle.setText(R.string.top_bar_title_home);
+        binding.topBar.buttonSettings.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
+
+        /*
+         * Home is already where we are, so tapping it should do nothing visible.
+         *
+         * The button stays PRESENT and enabled rather than being hidden on this
+         * one screen: a control that appears and disappears is harder to rely on
+         * than one that is simply always in the same place. Consistency is worth
+         * more here than removing a tap that happens to be a no-op.
+         */
+        binding.topBar.buttonHome.setOnClickListener(v ->
+                AppLogger.d(TAG, "Home tapped while already on the home screen"));
 
         requestNotificationPermissionIfNeeded();
 
@@ -168,7 +180,7 @@ public final class MainActivity extends BaseActivity {
         // background check may have found something while the user was
         // elsewhere, or an install may have just cleared it.
         final boolean updateWaiting = OtaUpdater.getPendingUpdate(this) != null;
-        binding.viewUpdateBadge.setVisibility(updateWaiting ? View.VISIBLE : View.GONE);
+        binding.topBar.viewUpdateBadge.setVisibility(updateWaiting ? View.VISIBLE : View.GONE);
 
         if (updateDialogShownThisSession || !updateWaiting) {
             return;

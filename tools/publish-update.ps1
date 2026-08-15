@@ -191,10 +191,25 @@ if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.
     throw "JAVA_HOME is not set to a valid JDK. Set it to a JDK 17+, e.g. 'C:\Program Files\Android\Android Studio\jbr'."
 }
 
+<#
+    Gradle writes progress and warnings to STDERR even on a fully successful
+    build. With $ErrorActionPreference = "Stop", PowerShell promotes any native
+    stderr output to a terminating error, so a passing build would abort the
+    script partway - after the APK exists but before the manifest is published,
+    which is the worst possible place to stop.
+
+    Success is judged by $LASTEXITCODE, the only reliable signal a native
+    command gives.
+#>
 $gradleTask = if ($BuildType -eq "release") { ":app:assembleRelease" } else { ":app:assembleDebug" }
-& (Join-Path $RepoRoot "gradlew.bat") $gradleTask --no-daemon
-if ($LASTEXITCODE -ne 0) {
-    throw "The Gradle build failed. Fix the build before publishing."
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+& (Join-Path $RepoRoot "gradlew.bat") $gradleTask --no-daemon 2>&1 | Out-Null
+$buildExitCode = $LASTEXITCODE
+$ErrorActionPreference = $previousPreference
+
+if ($buildExitCode -ne 0) {
+    throw "The Gradle build failed (exit $buildExitCode). Run '.\gradlew.bat $gradleTask' to see why."
 }
 
 $ApkPath = Join-Path $RepoRoot "app\build\outputs\apk\$BuildType\HCRobotics-$GradleVersionName-$BuildType.apk"

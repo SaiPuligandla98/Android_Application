@@ -38,46 +38,40 @@
     android:layout_height="match_parent"
     tools:context=".ui.settings.SettingsActivity">
 
-    <!-- ==================== Header bar ==================== -->
-    <LinearLayout
-        android:id="@+id/layout_header"
+    <!--
+      The same shared top bar as the home screen.
+
+      Home on the left returns to MainActivity from here, which is the whole
+      point of it being permanent: the way back is in the identical place on
+      every screen, so it never has to be looked for.
+    -->
+    <include
+        android:id="@+id/top_bar"
+        layout="@layout/view_top_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:elevation="2dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/spacing_small"
-        android:paddingTop="@dimen/spacing_small"
-        android:paddingEnd="@dimen/spacing_medium"
-        android:paddingBottom="@dimen/spacing_small"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/button_back"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/settings_action_back"
-            android:src="@drawable/ic_arrow_back" />
+    <!--
+      `focusableInTouchMode` fixes a real and easily-missed bug.
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/spacing_medium"
-            android:text="@string/settings_title"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/text_size_headline"
-            android:textStyle="bold" />
+      On layout, a ScrollView scrolls to whichever descendant takes initial
+      focus. Because the rows below are focusable (they must be, for keyboard
+      and TalkBack), the screen opened already scrolled PAST the status block -
+      the single most important thing on it - straight to a row further down.
+      Observed on a real device: the screen opened showing "ADVANCED".
 
-    </LinearLayout>
-
+      Making the ScrollView itself focusable in touch mode means IT takes the
+      initial focus, so the screen opens at the top where it should. The rows
+      stay individually focusable, so nothing about accessibility is lost.
+    -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:focusableInTouchMode="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

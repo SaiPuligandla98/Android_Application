@@ -91,7 +91,27 @@ public final class SettingsActivity extends BaseActivity {
         binding.textAppNameValue.setText(getString(R.string.app_name));
         binding.textPackageValue.setText(BuildConfig.APPLICATION_ID);
 
-        binding.buttonBack.setOnClickListener(v -> finish());
+        binding.topBar.textTopBarTitle.setText(R.string.settings_title);
+
+        /*
+         * Home returns to the main screen.
+         *
+         * finish() rather than starting MainActivity: this screen was launched
+         * FROM MainActivity, which is still sitting underneath on the back
+         * stack. Starting a new instance would stack a second copy on top of
+         * the first, so Back would then walk through two identical home screens.
+         * Finishing simply reveals the one already there.
+         */
+        binding.topBar.buttonHome.setOnClickListener(v -> {
+            AppLogger.i(TAG, "Home tapped; returning to the main screen");
+            finish();
+        });
+
+        // Already on Settings, so this is a no-op - kept enabled for the same
+        // consistency reason as Home on the main screen.
+        binding.topBar.buttonSettings.setOnClickListener(v ->
+                AppLogger.d(TAG, "Settings tapped while already in Settings"));
+
         binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdates());
         binding.buttonInstallUpdate.setOnClickListener(v -> OtaUpdater.openUpdateScreen(this));
         binding.rowNotifications.setOnClickListener(v -> openNotificationSettings());
@@ -126,6 +146,11 @@ public final class SettingsActivity extends BaseActivity {
         bindWarnings();
         bindNotificationState();
         bindRollback();
+
+        // The badge is part of the shared top bar, so it needs updating here
+        // too - otherwise it would be correct on the home screen and stale here.
+        binding.topBar.viewUpdateBadge.setVisibility(
+                OtaUpdater.getPendingUpdate(this) != null ? View.VISIBLE : View.GONE);
     }
 
     /**

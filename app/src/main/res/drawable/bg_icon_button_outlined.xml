@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  bg_icon_button_outlined.xml  |  Always-visible border for a top-bar button
+ =============================================================================
+
+  WHY A PERMANENT BORDER
+  ======================
+  A bare icon on a bar is ambiguous: users cannot tell whether it is a button or
+  a label until they try it. A visible outline removes the guesswork - the
+  control announces itself as tappable before it is touched.
+
+  It also gives the icon a defined hit area. The outline is drawn at the full
+  48dp touch target, so what the user SEES and what actually RESPONDS to a tap
+  are the same rectangle. Mismatched visual and touch bounds are a common and
+  very frustrating defect.
+
+  HOW THE STATE LIST WORKS
+  ========================
+  Items are matched TOP TO BOTTOM and the first match wins, so order matters:
+
+    1. pressed  - filled, for immediate touch feedback
+    2. default  - outline only (no state conditions, so it always matches)
+
+  The default must be last. Placing it first would make it match every time and
+  the pressed state would never be reached.
+
+  The border uses ?attr/colorOutline, so it follows the theme into dark mode.
+ =============================================================================
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pressed: fill lightly so the tap is unmistakable. -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brand_blue_light" />
+            <stroke
+                android:width="1dp"
+                android:color="?attr/colorPrimary" />
+            <corners android:radius="@dimen/icon_button_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Default: outline only. Must be last; it matches unconditionally. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="1dp"
+                android:color="?attr/colorOutline" />
+            <corners android:radius="@dimen/icon_button_corner_radius" />
+        </shape>
+    </item>
+
+</selector>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  view_top_bar.xml  |  Shared top bar, included by every screen
+ =============================================================================
+
+  LAYOUT
+  ======
+      [ Home ]        Title                       [ Settings ]
+       left        centre, flexes                     right
+
+  WHY ONE FILE INSTEAD OF COPYING IT INTO EACH SCREEN
+  ===================================================
+  Both screens need an identical bar. Duplicating it means every future change -
+  a new action, different spacing, a renamed id - has to be made twice, and the
+  second copy is the one that gets forgotten. `<include>` keeps it defined once.
+
+  With View Binding an included layout that carries an id is exposed as a NESTED
+  binding, so a screen reaches its controls as:
+
+      binding.topBar.buttonHome
+
+  which keeps it obvious that the button belongs to the bar rather than the
+  screen.
+
+  WHY THE BUTTONS ARE OUTLINED
+  ============================
+  A bare icon is ambiguous - is it a button or a label? The permanent border
+  says "tappable" before anyone touches it, and makes the visible bounds match
+  the touch target exactly.
+
+  THE SETTINGS BADGE
+  ==================
+  The settings button sits inside a FrameLayout so the update dot can overlap
+  its top-right corner. A FrameLayout stacks its children, which is exactly what
+  a badge needs; laying it out beside the icon instead would push the bar wider
+  whenever an update appeared.
+ =============================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurface"
+    android:elevation="2dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/spacing_small">
+
+    <!--
+      HOME. Always visible, always bordered, on every screen including the home
+      screen itself - a control that appears and disappears is harder to rely on
+      than one that is simply always there.
+    -->
+    <ImageButton
+        android:id="@+id/button_home"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="@drawable/bg_icon_button_outlined"
+        android:contentDescription="@string/top_bar_action_home"
+        android:padding="@dimen/spacing_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_home" />
+
+    <!--
+      Title. layout_weight="1" with width 0dp makes it absorb all remaining
+      space, which is what pins the two buttons to the outer edges regardless of
+      how long the title is or how wide the screen gets.
+    -->
+    <TextView
+        android:id="@+id/text_top_bar_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_medium"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_headline"
+        android:textStyle="bold"
+        tools:text="HC Robotics" />
+
+    <!-- SETTINGS, with the update badge stacked over its corner. -->
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/button_settings"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="@drawable/bg_icon_button_outlined"
+            android:contentDescription="@string/main_action_settings"
+            android:padding="@dimen/spacing_small"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_settings" />
+
+        <!--
+          The update dot. `layout_gravity="top|end"` pins it to the corner of
+          the button beneath it; the negative-free margin keeps it just inside
+          the border so it is never clipped.
+        -->
+        <View
+            android:id="@+id/view_update_badge"
+            android:layout_width="@dimen/update_badge_size"
+            android:layout_height="@dimen/update_badge_size"
+            android:layout_gravity="top|end"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_update_badge"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </FrameLayout>
+
+</LinearLayout>
