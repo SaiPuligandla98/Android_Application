@@ -127,5 +127,12 @@
       useful than leaving them hunting for a tab that cannot exist.
     -->
     <string name="perf_platform_note">Note: Android does not allow apps to measure the CPU or memory used by <i>other</i> apps. That access was removed in Android 8.0, so no app can show a per-app process table like Windows Task Manager. The figures above are device-wide, plus this app\'s own usage.</string>
-
+    <!-- ==================== Live graph cards ==================== -->
+    <string name="perf_live_memory">MEMORY IN USE</string>
+    <string name="perf_live_network">NETWORK</string>
+    <!-- %1$s = download rate, %2$s = upload rate -->
+    <string name="perf_live_network_detail">down %1$s / up %2$s</string>
+    <string name="perf_live_network_idle">No traffic</string>
+    <!-- Shown on the network card when the device has no connection at all. -->
+    <string name="perf_live_network_offline">Offline</string>
 </resources>

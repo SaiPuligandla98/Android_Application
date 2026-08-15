@@ -63,7 +63,20 @@ dependencies {
     implementation libs.androidx.appcompat
     implementation libs.androidx.core
     implementation libs.androidx.constraintlayout
-    implementation libs.androidx.swiperefresh
+    /*
+     * `api`, not `implementation`.
+     *
+     * SwipeRefreshLayout appears in this module's LAYOUT, and View Binding in
+     * the consuming application generates a binding class for that layout with
+     * a field of this type. The consumer therefore needs the class on its
+     * COMPILE classpath, which `implementation` deliberately withholds:
+     *
+     *   error: package androidx.swiperefreshlayout.widget does not exist
+     *
+     * A type that leaks into a module's generated API must be exposed with
+     * `api`. This is the textbook case for the distinction.
+     */
+    api libs.androidx.swiperefresh
 
     testImplementation libs.junit
 }
