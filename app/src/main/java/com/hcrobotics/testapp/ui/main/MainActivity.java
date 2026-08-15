@@ -1,8 +1,12 @@
 package com.hcrobotics.testapp.ui.main;
 
+import android.Manifest;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -52,6 +56,18 @@ public final class MainActivity extends BaseActivity {
     private ActivityMainBinding binding;
 
     /**
+     * Launcher for the Android 13+ notification permission request.
+     *
+     * <p>Must be created during {@code onCreate}, before the Activity is
+     * started — registering later throws. That is why it is a field
+     * initialised inline rather than created at the point of use.</p>
+     */
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted ->
+                    AppLogger.i(TAG, "Notification permission " + (granted ? "granted" : "denied")
+                            + (granted ? "" : " — update notifications will not be shown")));
+
+    /**
      * Inflates the main layout and attaches it to the window.
      *
      * <p>The welcome text itself lives in {@code res/values/strings.xml} and is
@@ -76,7 +92,41 @@ public final class MainActivity extends BaseActivity {
 
         binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdatesNow());
 
+        requestNotificationPermissionIfNeeded();
+
         AppLogger.i(TAG, "Main screen ready");
+    }
+
+    /**
+     * Asks for notification permission on Android 13+, if it is still missing.
+     *
+     * <p><b>Why this is not optional on a remote fleet.</b> From Android 13
+     * (API 33) posting a notification requires a runtime permission the user
+     * can decline. Declined — or simply never requested — every update
+     * notification is dropped by the system with <em>no error and no log</em>.
+     * The update check runs, finds a new version, posts a notification, and
+     * nothing whatsoever appears.</p>
+     *
+     * <p>That failure is completely invisible from the server side, which makes
+     * it one of the hardest things to diagnose on a device you cannot pick up.
+     * The library cannot request the permission itself — a runtime permission
+     * dialog must be launched from an Activity — so the host app must, and this
+     * is where.</p>
+     *
+     * <p>{@code OtaUpdater.canPostNotifications()} covers both the permission
+     * and the user having switched notifications off in Settings, so it is a
+     * truer test than a bare permission check.</p>
+     */
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            // Below Android 13 notifications need no runtime permission.
+            return;
+        }
+        if (OtaUpdater.canPostNotifications(this)) {
+            return;
+        }
+        AppLogger.i(TAG, "Requesting notification permission so update alerts can be shown");
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
 
     /**
