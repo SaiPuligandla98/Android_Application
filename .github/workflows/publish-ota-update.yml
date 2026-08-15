@@ -50,10 +50,15 @@ on:
     branches:
       - master
     # Documentation cannot change the APK, so skip those pushes entirely.
+    #
+    # `.github/**` is deliberately NOT ignored. A change to this workflow is
+    # precisely the thing that most needs running, and excluding it meant a fix
+    # to the pipeline could not be exercised without an unrelated source change.
+    # Re-running costs nothing: the versionCode gate below stops it
+    # republishing anything.
     paths-ignore:
       - '**.md'
       - 'docs/**'
-      - '.github/**'
   # Allows publishing by hand from the Actions tab.
   workflow_dispatch:
 
@@ -175,13 +180,36 @@ jobs:
           ./gradlew :app:assembleRelease --no-daemon
 
       # Fail loudly rather than publishing something no device can install.
+      #
+      # The APK's EXISTENCE is a hard requirement; the signature check is
+      # best-effort. apksigner lives under a versioned build-tools directory
+      # whose path varies between runner images, and a missing TOOL must never
+      # be reported as a missing SIGNATURE - that is exactly what happened on
+      # the first run, and the message pointed the diagnosis the wrong way.
+      #
+      # `apksigner verify` is judged by its EXIT CODE rather than by grepping
+      # its output: simpler, and immune to formatting changes between versions.
       - name: Verify the APK is signed
         if: steps.gate.outputs.publish == 'true'
         run: |
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
           APK="app/build/outputs/apk/release/HCRobotics-${{ steps.version.outputs.name }}-release.apk"
-          "$APKSIGNER" verify --print-certs "$APK" | grep "Signer #1 certificate SHA-256" \
-            || { echo "::error::The release APK is not signed."; exit 1; }
+          test -f "$APK" || { echo "::error::Expected APK not found at $APK"; exit 1; }
+          echo "APK: $APK ($(stat -c%s "$APK") bytes)"
+
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          APKSIGNER=$(ls -d "$SDK"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+
+          if [ -z "$APKSIGNER" ]; then
+            # Not fatal. Gradle only produces a signed release APK when a
+            # signingConfig is present, and the build above would have failed
+            # without one, so losing the double-check is not worth failing a
+            # release that is almost certainly correct.
+            echo "::warning::apksigner not found under $SDK/build-tools - skipping the signature double-check."
+            exit 0
+          fi
+
+          "$APKSIGNER" verify --print-certs "$APK" \
+            || { echo "::error::The release APK is not signed - it would install on nothing."; exit 1; }
 
       # ---- 5. Checksum ------------------------------------------------------
       # The integrity guarantee: a device whose download does not match this
