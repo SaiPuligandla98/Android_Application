@@ -1,5 +1,10 @@
 package com.hcrobotics.performance;
 
+import android.app.ActivityManager;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,6 +24,9 @@ import com.hcrobotics.performance.collector.MemoryCollector;
 import com.hcrobotics.performance.collector.NetworkCollector;
 import com.hcrobotics.performance.collector.StorageCollector;
 import com.hcrobotics.performance.collector.SystemCollector;
+import com.hcrobotics.performance.collector.ThroughputSampler;
+import com.hcrobotics.performance.internal.Units;
+import com.hcrobotics.performance.model.MetricHistory;
 import com.hcrobotics.performance.databinding.PerfActivityPerformanceBinding;
 import com.hcrobotics.performance.model.Metric;
 import com.hcrobotics.performance.model.MetricSection;
@@ -63,7 +71,62 @@ public final class PerformanceActivity extends AppCompatActivity {
      * respond to what the device is doing, and slow enough that the screen
      * stays readable rather than flickering.</p>
      */
-    private static final long REFRESH_INTERVAL_MS = 2_000L;
+    private static final long REFRESH_INTERVAL_MS = 1_000L;
+
+    /**
+     * How many samples the live graphs hold.
+     *
+     * <p>At one sample per second this is a rolling sixty-second window — long
+     * enough to show a trend rather than a twitch, short enough that what is on
+     * screen is still recognisably "now".</p>
+     */
+    private static final int HISTORY_SECONDS = 60;
+
+    /** Rolling window of memory usage, as a percentage. */
+    private final MetricHistory memoryHistory = new MetricHistory(HISTORY_SECONDS);
+
+    /** Rolling window of total network throughput, in bytes per second. */
+    private final MetricHistory networkHistory = new MetricHistory(HISTORY_SECONDS);
+
+    /** Converts cumulative traffic counters into a live rate. */
+    private final ThroughputSampler throughputSampler = new ThroughputSampler();
+
+    /**
+     * Fires the instant a network connects, disconnects or changes.
+     *
+     * <p>Polling alone would leave the screen showing "Wi-Fi" for up to a
+     * second after the Wi-Fi dropped. A callback makes connectivity changes
+     * appear immediately, which is what "dynamic" has to mean for a status
+     * display — the one reading a user is most likely to be watching while they
+     * deliberately toggle something.</p>
+     *
+     * <p>Callbacks arrive on a binder thread, so each one posts to the main
+     * thread rather than touching views directly.</p>
+     */
+    private final ConnectivityManager.NetworkCallback networkCallback =
+            new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    postImmediateRefresh();
+                }
+
+                @Override
+                public void onLost(@NonNull Network network) {
+                    postImmediateRefresh();
+                }
+
+                @Override
+                public void onCapabilitiesChanged(@NonNull Network network,
+                                                  @NonNull NetworkCapabilities capabilities) {
+                    // Covers Wi-Fi to mobile hand-off and validation changes,
+                    // neither of which raises onAvailable or onLost.
+                    postImmediateRefresh();
+                }
+            };
+
+    /** Whether the network callback is currently registered, so it is not
+     *  unregistered twice — which throws. */
+    private boolean networkCallbackRegistered = false;
 
     /** Posts the repeating refresh onto the main thread. */
     private final Handler refreshHandler = new Handler(Looper.getMainLooper());
@@ -94,15 +157,93 @@ public final class PerformanceActivity extends AppCompatActivity {
             binding.perfSwipeRefresh.setRefreshing(false);
         });
 
+        // Tint the graphs from the theme so they follow light and dark mode.
+        final int traceColor = resolveThemeColor(androidx.appcompat.R.attr.colorPrimary);
+        binding.perfGraphMemory.setTraceColor(traceColor);
+        binding.perfGraphNetwork.setTraceColor(traceColor);
+        binding.perfGraphMemory.setHistory(memoryHistory);
+        binding.perfGraphNetwork.setHistory(networkHistory);
+
         // Populate immediately so the screen is never briefly blank.
         refreshMetrics();
     }
 
-    /** Starts the repeating refresh when the screen becomes visible. */
+    /**
+     * Starts the repeating refresh and subscribes to connectivity changes.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         refreshHandler.post(refreshTask);
+        registerNetworkCallback();
+    }
+
+    /**
+     * Subscribes to connectivity changes so the network card updates the
+     * instant something changes, rather than up to a second later.
+     */
+    private void registerNetworkCallback() {
+        if (networkCallbackRegistered) {
+            return;
+        }
+        final ConnectivityManager connectivity =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity == null) {
+            return;
+        }
+        try {
+            connectivity.registerDefaultNetworkCallback(networkCallback);
+            networkCallbackRegistered = true;
+        } catch (RuntimeException e) {
+            // Registration can fail if too many callbacks are already active
+            // process-wide. The one-second poll still covers it, so degrade
+            // rather than crash a diagnostics screen.
+            networkCallbackRegistered = false;
+        }
+    }
+
+    /** Unsubscribes from connectivity changes. */
+    private void unregisterNetworkCallback() {
+        if (!networkCallbackRegistered) {
+            return;
+        }
+        final ConnectivityManager connectivity =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            try {
+                connectivity.unregisterNetworkCallback(networkCallback);
+            } catch (RuntimeException ignored) {
+                // Already unregistered; nothing to do.
+            }
+        }
+        networkCallbackRegistered = false;
+    }
+
+    /**
+     * Refreshes on the main thread, from a callback that arrives on a binder
+     * thread.
+     */
+    private void postImmediateRefresh() {
+        refreshHandler.post(() -> {
+            if (binding != null && !isFinishing()) {
+                refreshMetrics();
+            }
+        });
+    }
+
+    /**
+     * Resolves a colour from the current theme.
+     *
+     * <p>Read from the theme rather than hard-coded so the graphs follow light
+     * and dark mode, and pick up a host app's brand colour automatically.</p>
+     *
+     * @param attr a theme attribute such as {@code colorPrimary}
+     * @return the resolved colour
+     */
+    private int resolveThemeColor(int attr) {
+        final android.util.TypedValue value = new android.util.TypedValue();
+        getTheme().resolveAttribute(attr, value, true);
+        return value.data;
     }
 
     /**
@@ -115,7 +256,66 @@ public final class PerformanceActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         refreshHandler.removeCallbacks(refreshTask);
+        unregisterNetworkCallback();
         super.onPause();
+    }
+
+    /**
+     * Samples the two live metrics and redraws their graphs.
+     *
+     * <p>Called before the section rebuild so the headline numbers and the
+     * detail below them describe the same instant.</p>
+     */
+    private void refreshLiveGraphs() {
+        // ---- Memory ---------------------------------------------------------
+        final ActivityManager activityManager =
+                (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager != null) {
+            final ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+            activityManager.getMemoryInfo(info);
+
+            final long used = info.totalMem - info.availMem;
+            final int percent = Units.percent(used, info.totalMem);
+
+            memoryHistory.add(percent);
+            binding.perfTextLiveMemory.setText(percent + "%");
+            binding.perfTextLiveMemoryDetail.setText(
+                    Units.bytes(used) + " of " + Units.bytes(info.totalMem));
+            binding.perfGraphMemory.invalidate();
+        }
+
+        // ---- Network throughput ---------------------------------------------
+        throughputSampler.sample();
+        final long total = throughputSampler.getTotalBytesPerSecond();
+        networkHistory.add(total);
+
+        if (isOffline()) {
+            binding.perfTextLiveNetwork.setText(R.string.perf_live_network_offline);
+            binding.perfTextLiveNetworkDetail.setText("");
+        } else if (total == 0L) {
+            binding.perfTextLiveNetwork.setText(R.string.perf_live_network_idle);
+            binding.perfTextLiveNetworkDetail.setText("");
+        } else {
+            binding.perfTextLiveNetwork.setText(Units.bytes(total) + "/s");
+            binding.perfTextLiveNetworkDetail.setText(getString(
+                    R.string.perf_live_network_detail,
+                    Units.bytes(throughputSampler.getDownloadBytesPerSecond()) + "/s",
+                    Units.bytes(throughputSampler.getUploadBytesPerSecond()) + "/s"));
+        }
+        binding.perfGraphNetwork.invalidate();
+    }
+
+    /**
+     * @return {@code true} if the device currently has no active network
+     */
+    private boolean isOffline() {
+        final ConnectivityManager connectivity =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity == null) {
+            return true;
+        }
+        final Network active = connectivity.getActiveNetwork();
+        return active == null || connectivity.getNetworkCapabilities(active) == null;
     }
 
     /**
@@ -130,6 +330,8 @@ public final class PerformanceActivity extends AppCompatActivity {
         if (binding == null || isFinishing()) {
             return;
         }
+
+        refreshLiveGraphs();
 
         final List<MetricSection> sections = new ArrayList<>();
         sections.add(MemoryCollector.collect(this));

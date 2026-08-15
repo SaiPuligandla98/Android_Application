@@ -61,10 +61,21 @@ dependencies {
     implementation libs.androidx.appcompat
     implementation libs.androidx.core
     implementation libs.androidx.constraintlayout
-    // The device may have several hundred packages installed. A RecyclerView
-    // keeps only the visible rows in memory and recycles the rest; a plain
-    // ScrollView would inflate every one of them up front.
-    implementation libs.androidx.recyclerview
+    /*
+     * The device may have several hundred packages installed. A RecyclerView
+     * keeps only the visible rows in memory and recycles the rest; a plain
+     * ScrollView would inflate every one of them up front.
+     *
+     * `api` rather than `implementation`: RecyclerView appears in this module's
+     * layout, so View Binding in the consuming app generates a field of this
+     * type and needs the class on its compile classpath.
+     *
+     * It happens to compile today because Material Components depends on
+     * RecyclerView transitively - but relying on that would break the moment a
+     * host app dropped Material. Declaring it properly makes the module
+     * genuinely self-contained.
+     */
+    api libs.androidx.recyclerview
 
     testImplementation libs.junit
 }

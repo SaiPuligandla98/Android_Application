@@ -97,6 +97,121 @@
                 android:orientation="vertical">
 
                 <!--
+                  ==========================================================
+                   LIVE GRAPHS  =  the two metrics that actually move
+                  ==========================================================
+
+                  Memory and network throughput are the only readings here
+                  that change second to second in a way worth watching, so
+                  they get graphs. Storage, battery health and CPU topology
+                  do not; a sparkline of an unchanging number is decoration.
+
+                  Each card shows the CURRENT value large, with the recent
+                  history behind it. The number answers "what is it now"; the
+                  graph answers "is that normal, and which way is it going" =
+                  which a single number never can.
+                  ==========================================================
+                -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/perf_spacing_large"
+                    android:paddingTop="@dimen/perf_spacing_medium"
+                    android:paddingEnd="@dimen/perf_spacing_large">
+
+                    <!-- ===== Memory in use ===== -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/perf_spacing_small"
+                        android:layout_weight="1"
+                        android:background="@drawable/perf_bg_card"
+                        android:orientation="vertical"
+                        android:padding="@dimen/perf_spacing_medium">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.08"
+                            android:text="@string/perf_live_memory"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/perf_text_caption"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/perf_text_live_memory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/perf_text_live"
+                            android:textStyle="bold"
+                            tools:text="43%" />
+
+                        <TextView
+                            android:id="@+id/perf_text_live_memory_detail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/perf_text_caption"
+                            tools:text="3.40 GB of 7.86 GB" />
+
+                        <com.hcrobotics.performance.ui.SparklineView
+                            android:id="@+id/perf_graph_memory"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/perf_graph_height"
+                            android:layout_marginTop="@dimen/perf_spacing_small" />
+
+                    </LinearLayout>
+
+                    <!-- ===== Network throughput ===== -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/perf_spacing_small"
+                        android:layout_weight="1"
+                        android:background="@drawable/perf_bg_card"
+                        android:orientation="vertical"
+                        android:padding="@dimen/perf_spacing_medium">
+
+                        <TextView
+                            android:id="@+id/perf_text_live_network_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.08"
+                            android:text="@string/perf_live_network"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/perf_text_caption"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/perf_text_live_network"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/perf_text_live"
+                            android:textStyle="bold"
+                            tools:text="1.2 MB/s" />
+
+                        <TextView
+                            android:id="@+id/perf_text_live_network_detail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/perf_text_caption"
+                            tools:text="down 1.1 MB/s / up 84 KB/s" />
+
+                        <com.hcrobotics.performance.ui.SparklineView
+                            android:id="@+id/perf_graph_network"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/perf_graph_height"
+                            android:layout_marginTop="@dimen/perf_spacing_small" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!--
                   Sections and rows are inflated into here at runtime.
                   See PerformanceActivity.refreshMetrics().
                 -->

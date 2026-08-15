@@ -130,8 +130,8 @@ android {
         // versionCode : monotonically increasing integer used by the Play Store
         //               to decide what constitutes an "update".
         // versionName : human-readable string shown in Settings > Apps.
-        versionCode 9
-        versionName "1.8.0"
+        versionCode 10
+        versionName "1.9.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

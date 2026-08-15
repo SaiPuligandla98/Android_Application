@@ -26,5 +26,11 @@
     <dimen name="perf_text_caption">12sp</dimen>
 
     <dimen name="perf_touch_target">48dp</dimen>
-
+    <!-- ==================== Live graph cards ==================== -->
+    <!-- Large enough to read across the room; this is the headline number. -->
+    <dimen name="perf_text_live">28sp</dimen>
+    <!-- Tall enough for the shape of a trend to be legible, short enough that
+         both cards and the detail sections still fit on a landscape screen. -->
+    <dimen name="perf_graph_height">48dp</dimen>
+    <dimen name="perf_card_radius">10dp</dimen>
 </resources>
