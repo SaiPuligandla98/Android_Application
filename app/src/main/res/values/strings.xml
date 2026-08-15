@@ -70,6 +70,14 @@
     <!-- Content description for the settings icon, read aloud by TalkBack. -->
     <string name="main_action_settings">Settings</string>
 
+    <!-- ==================== Top bar ==================== -->
+
+    <!-- Content description for the home button, read aloud by TalkBack. -->
+    <string name="top_bar_action_home">Home</string>
+
+    <!-- Title shown in the top bar on the home screen. -->
+    <string name="top_bar_title_home">HC Robotics</string>
+
     <!-- ==================== Settings screen ==================== -->
 
     <string name="settings_title">Settings</string>

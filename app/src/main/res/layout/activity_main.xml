@@ -1,44 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
  =============================================================================
-  activity_main.xml  |  Layout for MainActivity (the landing screen)
+  activity_main.xml  |  Layout for MainActivity (the home screen)
  =============================================================================
 
   WHAT IS ON SCREEN
   =================
-    * The HC ROBOTICS brand mark.
-    * The welcome message.
+    * The shared top bar: Home on the left, Settings on the right.
+    * The welcome message, centred in the space beneath it.
     * The running build version.
-    * A "Check for updates" button.
 
-  WHY THE UPDATE BUTTON MATTERS ON A REMOTE FLEET
-  ===============================================
-  The background check runs every few hours, and Android batches background
-  work aggressively, so "every six hours" really means "at least six hours".
-  That is the right default for battery life and completely wrong when you are
-  standing in front of a device waiting to confirm a rollout.
+  THE LOGO HAS BEEN REMOVED FROM THIS SCREEN
+  ==========================================
+  It appeared here and on the splash screen, which meant the user saw the same
+  wordmark twice within two seconds of opening the app. The splash is where
+  branding belongs - it exists for exactly that - so showing it again on the
+  landing screen added nothing and pushed the actual content down.
 
-  The button calls OtaUpdater.checkNow(), which runs a check immediately. It is
-  the difference between verifying a deployment in ten seconds and waiting half
-  a day, on a device you may not be able to reach physically.
+  STRUCTURE
+  =========
+      top bar          pinned to the top
+      content block    centred in everything that remains
 
-  LAYOUT: A PACKED VERTICAL CHAIN
-  ===============================
-  The four views form a CHAIN. A chain is a group of views that constrain to
-  each other in a line, with the group as a whole positioned by the parent:
-
-      parent top
-          |
-      [ logo ]  <-> [ welcome ] <-> [ version ] <-> [ button ]
-          |
-      parent bottom
-
-  `layout_constraintVertical_chainStyle="packed"` keeps them tight together and
-  centres the whole group. Without a chain, centring four stacked views as one
-  block means hand-calculating margins that break on the next screen size.
-
-  Only the FIRST view in a chain declares the chain style; the rest simply
-  constrain head-to-tail.
+  The welcome text and version form a packed vertical chain constrained between
+  the top bar and the bottom of the screen, so the pair sits centred in the
+  remaining space rather than in the whole window - which would push it visibly
+  low once the bar took its height.
  =============================================================================
 -->
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -47,83 +34,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/spacing_large"
     tools:context=".ui.main.MainActivity">
 
     <!--
-      Settings, pinned to the top-right corner and OUTSIDE the centred chain so
-      it does not shift as the content below it changes.
+      Shared top bar. Defined once in view_top_bar.xml and included by every
+      screen, so a change there applies everywhere.
 
-      A borderless button gives the ripple and touch feedback of a real control
-      while showing only the icon. 48dp square is the accessibility minimum for
-      a touch target; the icon itself is 24dp, and the surrounding padding is
-      what makes it comfortably tappable.
+      The id makes View Binding expose it as a nested binding, reached as
+      binding.topBar.buttonHome.
     -->
-    <ImageButton
-        android:id="@+id/button_settings"
-        android:layout_width="@dimen/touch_target_min"
-        android:layout_height="@dimen/touch_target_min"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/main_action_settings"
-        android:src="@drawable/ic_settings"
+    <include
+        android:id="@+id/top_bar"
+        layout="@layout/view_top_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!--
-      Update badge: a small coloured dot on the corner of the gear, shown only
-      while an update is waiting.
-
-      WHY A DOT RATHER THAN A COUNT OR A BANNER
-      A notification can be swiped away and forgotten; a banner takes over the
-      screen every launch. A dot is the quietest signal that survives - it says
-      "there is something in here" without ever interrupting, which is exactly
-      the right weight for an optional update.
-
-      Positioned by constraining its top and end to the gear's top and end, so
-      it tracks the icon rather than sitting at hard-coded coordinates.
+      The welcome message. Head of a packed chain, constrained BELOW the top bar
+      rather than to the parent, so it centres in the space that is actually
+      left over.
     -->
-    <View
-        android:id="@+id/view_update_badge"
-        android:layout_width="@dimen/update_badge_size"
-        android:layout_height="@dimen/update_badge_size"
-        android:background="@drawable/bg_update_badge"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/button_settings"
-        app:layout_constraintTop_toTopOf="@id/button_settings"
-        tools:visibility="visible" />
-
-    <!--
-      The HC ROBOTICS brand mark, at the head of the chain.
-
-      adjustViewBounds keeps the artwork's aspect ratio (1164x220) whatever
-      width it is given, so the wordmark can never appear stretched.
-
-      A width of 0dp means "fill the space between my constraints", and
-      maxWidth caps it so the logo does not become absurdly wide on a tablet.
-    -->
-    <ImageView
-        android:id="@+id/image_brand_logo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginEnd="@dimen/spacing_large"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/cd_company_logo"
-        android:maxWidth="@dimen/main_logo_max_width"
-        android:src="@drawable/img_hc_robotics_wordmark"
-        app:layout_constraintBottom_toTopOf="@id/text_welcome_message"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <!-- The welcome message. -->
     <TextView
         android:id="@+id/text_welcome_message"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginTop="@dimen/spacing_extra_large"
         android:layout_marginEnd="@dimen/spacing_large"
         android:gravity="center"
         android:text="@string/main_welcome_message"
@@ -133,7 +71,8 @@
         app:layout_constraintBottom_toTopOf="@id/text_app_version"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/image_brand_logo" />
+        app:layout_constraintTop_toBottomOf="@id/top_bar"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <!--
       Running build.
@@ -156,18 +95,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
-        tools:text="Version 1.4.0" />
-
-    <!--
-      NOTE: the "Check for updates" button that used to sit here has been
-      removed. Updates now reach the user two ways only:
-
-        * a notification, when a background check finds one, and
-        * the Settings screen, which is where a manual check belongs.
-
-      A landing screen whose main content is a maintenance button is a landing
-      screen with nothing to say. Keeping the update machinery in Settings
-      leaves this screen for the application itself.
-    -->
+        tools:text="Version 1.5.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
