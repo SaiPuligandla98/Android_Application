@@ -42,6 +42,8 @@ captures/
 *.keystore
 keystore.properties
 signing.properties
+# The base64 blob produced for the GitHub secret IS the keystore in plain text.
+keystore.base64.txt
 
 # --- Editor / assistant local state -------------------------------------------
 # Per-developer tool settings; not part of the project.

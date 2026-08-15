@@ -127,21 +127,70 @@ jobs:
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # ---- 3. Build ---------------------------------------------------------
-      - name: Build the APK
+      # ---- 3. Signing key ---------------------------------------------------
+      #
+      # THE SINGLE MOST IMPORTANT THING IN THIS FILE.
+      #
+      # Android refuses to install an update signed by a different key than the
+      # installed build (INSTALL_FAILED_UPDATE_INCOMPATIBLE). Every release
+      # must therefore be signed with the SAME key, forever.
+      #
+      # This project learned that the hard way: builds up to 1.6.0 were DEBUG
+      # builds signed with a developer machine's auto-generated debug keystore,
+      # then CI produced 1.7.0 signed with its OWN debug keystore. Different
+      # key, refused install, on a device that could not be reached.
+      #
+      # Debug keystores are per-machine and generated on demand, so they can
+      # never be a basis for distribution. The keystore is stored base64-encoded
+      # as a repository secret and decoded here.
+      - name: Restore the release keystore
         if: steps.gate.outputs.publish == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 secret is missing. Release builds cannot be signed, and an unsigned APK installs on nothing. Add the four signing secrets described in docs/RELEASE_SIGNING.md."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "Keystore restored ($(stat -c%s "$RUNNER_TEMP/release.jks") bytes)"
+
+      # ---- 4. Build a SIGNED RELEASE APK ------------------------------------
+      #
+      # Release, not debug. A debug build is debuggable by anyone with a cable,
+      # is not shrunk or optimised, and carries a keystore that is not yours -
+      # none of which belongs on real hardware in the field.
+      #
+      # R8 also shrinks the APK substantially: 5.76 MB debug to 2.03 MB release
+      # on this project, which is bandwidth saved on every device, every update.
+      - name: Build the signed release APK
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew :app:assembleDebug --no-daemon
+          ./gradlew :app:assembleRelease --no-daemon
 
-      # ---- 4. Checksum ------------------------------------------------------
+      # Fail loudly rather than publishing something no device can install.
+      - name: Verify the APK is signed
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          APK="app/build/outputs/apk/release/HCRobotics-${{ steps.version.outputs.name }}-release.apk"
+          "$APKSIGNER" verify --print-certs "$APK" | grep "Signer #1 certificate SHA-256" \
+            || { echo "::error::The release APK is not signed."; exit 1; }
+
+      # ---- 5. Checksum ------------------------------------------------------
       # The integrity guarantee: a device whose download does not match this
       # digest deletes the file and refuses to install it.
       - name: Compute SHA-256
         if: steps.gate.outputs.publish == 'true'
         id: apk
         run: |
-          APK="app/build/outputs/apk/debug/HCRobotics-${{ steps.version.outputs.name }}-debug.apk"
+          APK="app/build/outputs/apk/release/HCRobotics-${{ steps.version.outputs.name }}-release.apk"
           test -f "$APK" || { echo "Expected APK not found at $APK"; exit 1; }
           echo "path=$APK" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$APK")" >> "$GITHUB_OUTPUT"

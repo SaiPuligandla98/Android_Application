@@ -64,11 +64,47 @@ plugins {
  *    keyPassword=...
  * -----------------------------------------------------------------------------
  */
+/*
+ *  TWO WAYS TO SUPPLY THE SIGNING KEY
+ *  ----------------------------------
+ *  1. LOCAL  - keystore.properties beside this file. Gitignored, so a fresh
+ *              clone simply has no release key and still builds debug fine.
+ *  2. CI     - environment variables fed from GitHub Secrets. The keystore
+ *              itself is stored base64-encoded as a secret and written to disk
+ *              by the workflow before the build.
+ *
+ *  Supporting both matters: a developer must be able to build a signed release
+ *  locally, and CI must be able to do it with no file checked in anywhere.
+ *
+ *  THE RULE THAT MAKES OTA POSSIBLE AT ALL
+ *  ---------------------------------------
+ *  Android refuses to install an update signed by a different key than the
+ *  installed build - INSTALL_FAILED_UPDATE_INCOMPATIBLE.
+ *
+ *  This project hit exactly that: every APK up to 1.6.0 was a DEBUG build
+ *  signed with this machine's debug keystore, then 1.7.0 was built by GitHub
+ *  Actions, which generated its OWN debug keystore. Different key, refused
+ *  install.
+ *
+ *  Debug keystores are per-machine and auto-generated, so they can never be a
+ *  basis for distribution. One fixed release key, used by every build forever,
+ *  is the only arrangement that works.
+ */
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
-def hasReleaseKeystore = keystorePropertiesFile.exists()
-if (hasReleaseKeystore) {
+def hasReleaseKeystore = false
+
+if (keystorePropertiesFile.exists()) {
+    // Local developer machine.
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    hasReleaseKeystore = true
+} else if (System.getenv("KEYSTORE_PASSWORD")) {
+    // CI. The workflow has already decoded the keystore to KEYSTORE_FILE.
+    keystoreProperties['storeFile'] = System.getenv("KEYSTORE_FILE") ?: "release.jks"
+    keystoreProperties['storePassword'] = System.getenv("KEYSTORE_PASSWORD")
+    keystoreProperties['keyAlias'] = System.getenv("KEY_ALIAS")
+    keystoreProperties['keyPassword'] = System.getenv("KEY_PASSWORD")
+    hasReleaseKeystore = true
 }
 
 android {
