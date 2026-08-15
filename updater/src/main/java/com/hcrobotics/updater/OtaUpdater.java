@@ -17,6 +17,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import com.hcrobotics.updater.internal.ApkInstaller;
+import com.hcrobotics.updater.internal.AppVersion;
 import com.hcrobotics.updater.internal.UpdaterLog;
 import com.hcrobotics.updater.notify.UpdateNotifier;
 import com.hcrobotics.updater.ui.UpdateActivity;
@@ -104,6 +105,16 @@ public final class OtaUpdater {
      */
     private static final String KEY_LAST_MANIFEST = "last_manifest";
 
+    /**
+     * Preference key holding when a check last completed, as epoch millis.
+     *
+     * <p>Every mature update screen shows this, and for good reason: "Up to
+     * date" alone is unfalsifiable. "Up to date, checked 3 minutes ago" tells
+     * the user the answer is current, while "checked 6 days ago" quietly
+     * reveals that checking itself is broken — which is otherwise invisible.</p>
+     */
+    private static final String KEY_LAST_CHECK_TIME = "last_check_time";
+
     /** Utility class; never instantiated. */
     private OtaUpdater() {
         throw new AssertionError("OtaUpdater is a static facade.");
@@ -148,8 +159,34 @@ public final class OtaUpdater {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 request);
 
+        /*
+         * Run a check NOW as well as scheduling the recurring one.
+         *
+         * WHY THIS IS NOT REDUNDANT
+         * -------------------------
+         * A PeriodicWorkRequest does NOT run when it is enqueued. WorkManager is
+         * free to place the first execution anywhere inside the first interval,
+         * and in practice it usually lands near the END of it. A six-hour
+         * interval therefore means a freshly installed device can sit for most
+         * of a day before its very first update check.
+         *
+         * That was measured, not assumed: on a real device the first run was
+         * scheduled for "+5h47m" after install.
+         *
+         * For a fleet deployed in the field that behaviour is unacceptable. A
+         * device that has just been switched on, or an app the user has just
+         * opened, should learn about a waiting update in seconds - not
+         * eventually.
+         *
+         * The one-shot costs a single HTTPS GET of a few hundred bytes, and
+         * `initialise()` is called once per process from Application.onCreate(),
+         * so it cannot run away with battery.
+         */
+        checkNow(appContext);
+
         UpdaterLog.i("OTA updater initialised | interval=" + config.getCheckIntervalHours()
-                + "h | unmeteredOnly=" + config.isRequireUnmeteredNetwork());
+                + "h | unmeteredOnly=" + config.isRequireUnmeteredNetwork()
+                + " | immediate check requested");
     }
 
     /**
@@ -310,6 +347,63 @@ public final class OtaUpdater {
     }
 
     /**
+     * Records that a check completed successfully, now.
+     *
+     * <p>Public because the worker lives in another package; internal detail.</p>
+     *
+     * @param context any context
+     */
+    public static void storeLastCheckTime(@NonNull Context context) {
+        OtaConfig.prefs(context).edit()
+                .putLong(KEY_LAST_CHECK_TIME, System.currentTimeMillis())
+                .apply();
+    }
+
+    /**
+     * Returns when a check last completed successfully.
+     *
+     * <p>A settings screen should show this next to the update status. "Up to
+     * date" on its own is unfalsifiable; "up to date, checked 3 minutes ago"
+     * is a real answer, and "checked 6 days ago" exposes a device whose
+     * checking has silently stopped.</p>
+     *
+     * @param context any context
+     * @return epoch millis of the last successful check, or {@code 0} if a
+     *         check has never completed on this device
+     */
+    public static long getLastCheckTime(@NonNull Context context) {
+        return OtaConfig.prefs(context).getLong(KEY_LAST_CHECK_TIME, 0L);
+    }
+
+    /**
+     * Reports whether a rollback would actually be possible right now.
+     *
+     * <p>Checks all three conditions, so a settings screen never offers a
+     * control that cannot work:</p>
+     * <ol>
+     *   <li>the manifest published a previous release at all;</li>
+     *   <li>that release is genuinely OLDER than what is installed — after
+     *       rolling back once, the same entry would otherwise invite the user
+     *       to "roll back" to the version they are already running;</li>
+     *   <li>this device meets that older release's minSdk.</li>
+     * </ol>
+     *
+     * @param context any context
+     * @return {@code true} if {@link #startRollback} would do something useful
+     */
+    public static boolean canRollBack(@NonNull Context context) {
+        final UpdateInfo previousRelease = getPreviousVersion(context);
+        if (previousRelease == null) {
+            return false;
+        }
+        if (previousRelease.getVersionCode() >= AppVersion.installedVersionCode(context)) {
+            return false;
+        }
+        return previousRelease.getMinSdk() <= 0
+                || android.os.Build.VERSION.SDK_INT >= previousRelease.getMinSdk();
+    }
+
+    /**
      * Returns the last manifest this device successfully fetched.
      *
      * <p>Stored separately from the pending update: once the app is up to date
@@ -355,8 +449,47 @@ public final class OtaUpdater {
      */
     @Nullable
     public static UpdateInfo getPendingUpdate(@NonNull Context context) {
-        return UpdateInfo.fromStoredString(
+        final UpdateInfo stored = UpdateInfo.fromStoredString(
                 OtaConfig.prefs(context).getString(KEY_PENDING_UPDATE, null));
+
+        if (stored == null) {
+            return null;
+        }
+
+        /*
+         * SELF-HEALING GUARD - do not remove.
+         *
+         * The stored record says "version N is available". It does NOT
+         * automatically stop being true when version N gets installed, and the
+         * consequences of trusting it blindly are worse than they look:
+         *
+         *   1. The app keeps notifying about an update it is already running.
+         *   2. Tapping "Update now" reinstalls the SAME APK over itself.
+         *      Android kills the app's process to replace it, which to a user
+         *      is indistinguishable from a crash - the app simply vanishes.
+         *      Reopening shows the same notification again, forever.
+         *
+         * Both symptoms were reported from a real device, and both come from
+         * this one stale record.
+         *
+         * Clearing it on a successful install (see InstallResultReceiver) is
+         * necessary but NOT sufficient: the install broadcast can be missed if
+         * the process dies at the wrong moment, and a sideloaded or manually
+         * installed build never produces one at all.
+         *
+         * Comparing against the version actually installed makes the answer
+         * derived rather than remembered, so it cannot drift out of date no
+         * matter how the app got updated.
+         */
+        final long installedVersion = AppVersion.installedVersionCode(context);
+        if (stored.getVersionCode() <= installedVersion) {
+            UpdaterLog.i("Discarding a stale pending update: version " + stored.getVersionCode()
+                    + " is already installed (running " + installedVersion + ")");
+            clearPendingUpdate(context);
+            return null;
+        }
+
+        return stored;
     }
 
     /**

@@ -88,6 +88,9 @@
 
     <string name="updater_dialog_title">Update available</string>
 
+    <!-- Shown if the update screen is opened for a version already installed. -->
+    <string name="updater_already_up_to_date">This version is already installed.</string>
+
     <!--
       Both versions shown together. A single number tells the user nothing;
       the pair tells them how far behind they are.

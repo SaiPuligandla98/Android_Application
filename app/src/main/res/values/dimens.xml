@@ -63,4 +63,11 @@
     -->
     <dimen name="touch_target_min">48dp</dimen>
 
+    <!--
+      The update dot on the settings gear. 10dp is the smallest size that stays
+      unmistakably a deliberate indicator rather than a rendering artefact,
+      while remaining quiet enough not to compete with the icon it sits on.
+    -->
+    <dimen name="update_badge_size">10dp</dimen>
+
 </resources>

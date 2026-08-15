@@ -4,7 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -102,7 +102,6 @@ public final class MainActivity extends BaseActivity {
         binding.textAppVersion.setText(
                 getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
 
-        binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdatesNow());
         binding.buttonSettings.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 
@@ -144,35 +143,6 @@ public final class MainActivity extends BaseActivity {
     }
 
     /**
-     * Runs an over-the-air update check immediately.
-     *
-     * <p>The background check runs every few hours, and Android batches
-     * background work aggressively, so its real interval is "at least six
-     * hours". That is correct for battery life and useless when you are
-     * standing in front of a device wanting to confirm a rollout landed.</p>
-     *
-     * <p>This is the manual override, and on a remotely deployed fleet it is
-     * the difference between verifying a deployment in ten seconds and waiting
-     * half a day.</p>
-     *
-     * <p>{@link OtaUpdater#checkNow} returns immediately; the check itself runs
-     * on a background thread and posts a notification if it finds something. If
-     * an update is already known about, the update screen is opened directly
-     * rather than making the user wait for a second check to rediscover it.</p>
-     */
-    private void checkForUpdatesNow() {
-        if (OtaUpdater.getPendingUpdate(this) != null) {
-            AppLogger.i(TAG, "An update is already pending; opening the update screen");
-            OtaUpdater.openUpdateScreen(this);
-            return;
-        }
-
-        AppLogger.i(TAG, "Manual update check requested");
-        Toast.makeText(this, R.string.main_update_check_started, Toast.LENGTH_SHORT).show();
-        OtaUpdater.checkNow(this);
-    }
-
-    /**
      * Offers any waiting update, once per visit to this screen.
      *
      * <p>A manual check is asynchronous — handed to WorkManager and completed a
@@ -193,7 +163,14 @@ public final class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (updateDialogShownThisSession) {
+
+        // The badge reflects current state on every return to this screen: a
+        // background check may have found something while the user was
+        // elsewhere, or an install may have just cleared it.
+        final boolean updateWaiting = OtaUpdater.getPendingUpdate(this) != null;
+        binding.viewUpdateBadge.setVisibility(updateWaiting ? View.VISIBLE : View.GONE);
+
+        if (updateDialogShownThisSession || !updateWaiting) {
             return;
         }
         if (OtaUpdater.showUpdateDialogIfAvailable(this)) {
