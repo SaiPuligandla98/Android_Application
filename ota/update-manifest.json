@@ -1,18 +1,18 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8.0",
-  "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.8.0/HCRobotics-1.8.0-release.apk",
-  "sha256": "7a5c5153d2ea3bef9aa3b1dcb3ed354023fc2c3939a6b2d6b92cf0748726e801",
-  "sizeBytes": 2180338,
+  "versionCode": 10,
+  "versionName": "1.9.0",
+  "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.9.0/HCRobotics-1.9.0-release.apk",
+  "sha256": "8e501ee017b811c54ca2362c034668e0a01e1ef6e1d4cc171a59916e365f8ab0",
+  "sizeBytes": 2184766,
   "minSdk": 24,
   "mandatory": false,
-  "releaseNotes": "ci: do not report a missing apksigner as a missing signature\n\nThe v1.8.0 publish failed at 'Verify the APK is signed'. The APK was fine -\napksigner simply could not be located, because 'find \\/build-tools'\nreturned nothing on the runner image. The pipeline then grepped empty output\nand announced that the release was unsigned, sending the diagnosis in exactly\nthe wrong direction.\n\nA missing TOOL is not a missing SIGNATURE, and a check must never fail more\nloudly than the thing it is checking.\n\nNow: the APK's existence is a hard requirement, the signature check is\nbest-effort, and apksigner is judged by its exit code rather than by grepping\nits output. If the tool cannot be found the step warns and continues - Gradle\nonly emits a signed release APK when a signingConfig is present, so the build\nwould already have failed without one.\n\nAlso stops ignoring .github/** for triggering. A change to this workflow is\nthe thing that most needs running, and excluding it meant a pipeline fix could\nnot be exercised without an unrelated source change. Re-running is free: the\nversionCode gate stops it republishing anything.",
-  "publishedAt": "2026-08-15T16:56:38Z",
+  "releaseNotes": "Merge pull request #12 from SaiPuligandla98/release/v1.9.0\n\nfeat(performance): live graphs and instant network status",
+  "publishedAt": "2026-08-15T17:20:33Z",
   "previous": {
-    "versionCode": 8,
-    "versionName": "1.7.0",
-    "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.7.0/HCRobotics-1.7.0-debug.apk",
-    "sha256": "d68a7f669613974a0449abe3f62a0c7c40028c823600473cd23da1bd4bf98dcc",
-    "sizeBytes": 6030955
+    "versionCode": 9,
+    "versionName": "1.8.0",
+    "apkUrl": "https://github.com/SaiPuligandla98/Android_Application/releases/download/v1.8.0/HCRobotics-1.8.0-release.apk",
+    "sha256": "7a5c5153d2ea3bef9aa3b1dcb3ed354023fc2c3939a6b2d6b92cf0748726e801",
+    "sizeBytes": 2180338
   }
 }
