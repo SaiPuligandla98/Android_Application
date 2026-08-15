@@ -34,7 +34,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.main.MainActivity">
+
+    <!--
+      android:fitsSystemWindows="true" is NOT cosmetic here - without it the top
+      bar is partly unusable.
+
+      From Android 15 (API 35) apps that target SDK 35 are forced edge-to-edge:
+      the window extends UNDER the status and navigation bars, and the app is
+      responsible for insetting its own content.
+
+      Left unhandled, the consequence was concrete and was reproduced on a real
+      device: in LANDSCAPE the navigation bar moves to the right-hand edge, and
+      the Settings button - anchored to that edge - ended up underneath it. The
+      button was fully visible and completely untappable, because the system bar
+      consumed every touch. The Home button on the opposite edge worked fine,
+      which is what makes this kind of bug so easy to miss.
+
+      This attribute makes the framework pad this view by the system bar insets,
+      so content stays inside the usable area in every orientation.
+    -->
 
     <!--
       Shared top bar. Defined once in view_top_bar.xml and included by every

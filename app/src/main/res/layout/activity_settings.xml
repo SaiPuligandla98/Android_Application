@@ -36,7 +36,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.settings.SettingsActivity">
+
+    <!--
+      See activity_main.xml for the full explanation. In short: targetSdk 35
+      forces edge-to-edge, so without this the top bar's buttons sit underneath
+      the system bars and stop responding to touches - in landscape the
+      navigation bar sits on the right edge, directly over the Settings button.
+    -->
 
     <!--
       The same shared top bar as the home screen.
@@ -75,7 +83,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_header">
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
 
         <LinearLayout
             android:layout_width="match_parent"
