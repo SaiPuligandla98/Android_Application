@@ -65,6 +65,10 @@
     <!-- New version. %1$s is the version name. -->
     <string name="updater_new_version_format">New version: %1$s</string>
 
+    <!-- Heading and version line when restoring an older build. -->
+    <string name="updater_heading_rollback">Restore the previous version</string>
+    <string name="updater_restore_version_format">Restoring version: %1$s</string>
+
     <!-- Currently installed version. %1$s is the version name. -->
     <string name="updater_installed_version_format">Installed: %1$s</string>
 
@@ -79,6 +83,38 @@
 
     <!-- Warning banner shown when the manifest marks the update mandatory. -->
     <string name="updater_mandatory_notice">This update is required and cannot be postponed.</string>
+
+    <!-- ==================== Update dialog ==================== -->
+
+    <string name="updater_dialog_title">Update available</string>
+
+    <!--
+      Both versions shown together. A single number tells the user nothing;
+      the pair tells them how far behind they are.
+      %1$s = installed version, %2$s = new version.
+    -->
+    <string name="updater_dialog_versions">Current version: %1$s\nNew version: %2$s</string>
+
+    <!-- %1$s is a formatted size such as "5.7 MB". -->
+    <string name="updater_dialog_size">Download size: %1$s</string>
+
+    <string name="updater_action_update_now">Update now</string>
+    <string name="updater_action_not_now">Not now</string>
+
+    <!-- ==================== Rollback ==================== -->
+
+    <string name="updater_rollback_title">Go back to the previous version?</string>
+
+    <!--
+      %1$s = version currently installed, %2$s = version being restored to.
+    -->
+    <string name="updater_rollback_message">This will replace version %1$s with version %2$s.\n\nAndroid normally refuses to install an older version over a newer one. If it is blocked, the only way back is to uninstall the app and install the older build manually — which erases everything the app has saved.</string>
+
+    <string name="updater_action_rollback">Go back</string>
+    <string name="updater_action_cancel">Cancel</string>
+
+    <!-- Shown when the platform refuses the downgrade. -->
+    <string name="updater_rollback_blocked">Android blocked the downgrade. Installing an older version over a newer one is only permitted for debuggable builds. To go back on a release build, uninstall the app first and install the older APK manually.</string>
 
     <!-- ==================== Buttons ==================== -->
 

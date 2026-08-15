@@ -133,6 +133,14 @@ public final class UpdateCheckWorker extends Worker {
         UpdaterLog.i("Manifest reports version " + update.getVersionCode()
                 + " (" + update.getVersionName() + ")");
 
+        /*
+         * Store the manifest whether or not it implies an update. Once the app
+         * is current the pending update is cleared, but a Settings screen still
+         * needs the manifest in order to offer a rollback to the previous
+         * published version.
+         */
+        OtaUpdater.storeLastSeenManifest(context, update);
+
         // ---- Decision 1: is the published build actually newer? -------------
         if (update.getVersionCode() <= installedVersion) {
             UpdaterLog.i("Already up to date; nothing to do");

@@ -1,8 +1,13 @@
 package com.hcrobotics.testapp.ui.main;
 
+import android.Manifest;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -11,6 +16,7 @@ import com.hcrobotics.updater.OtaUpdater;
 import com.hcrobotics.testapp.BuildConfig;
 import com.hcrobotics.testapp.R;
 import com.hcrobotics.testapp.core.util.AppLogger;
+import com.hcrobotics.testapp.ui.settings.SettingsActivity;
 import com.hcrobotics.testapp.databinding.ActivityMainBinding;
 import com.hcrobotics.testapp.ui.base.BaseActivity;
 
@@ -52,6 +58,28 @@ public final class MainActivity extends BaseActivity {
     private ActivityMainBinding binding;
 
     /**
+     * Whether the update dialog has already been offered during this visit.
+     *
+     * <p>Prevents the dialog reappearing every time the user returns from
+     * Settings or the update screen. Not persisted deliberately: a fresh app
+     * launch should ask again, because an update that is still outstanding
+     * tomorrow is worth mentioning again tomorrow.</p>
+     */
+    private boolean updateDialogShownThisSession = false;
+
+    /**
+     * Launcher for the Android 13+ notification permission request.
+     *
+     * <p>Must be created during {@code onCreate}, before the Activity is
+     * started — registering later throws. That is why it is a field
+     * initialised inline rather than created at the point of use.</p>
+     */
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted ->
+                    AppLogger.i(TAG, "Notification permission " + (granted ? "granted" : "denied")
+                            + (granted ? "" : " — update notifications will not be shown")));
+
+    /**
      * Inflates the main layout and attaches it to the window.
      *
      * <p>The welcome text itself lives in {@code res/values/strings.xml} and is
@@ -75,8 +103,44 @@ public final class MainActivity extends BaseActivity {
                 getString(R.string.main_version_format, BuildConfig.VERSION_NAME));
 
         binding.buttonCheckUpdates.setOnClickListener(v -> checkForUpdatesNow());
+        binding.buttonSettings.setOnClickListener(v ->
+                startActivity(new Intent(this, SettingsActivity.class)));
+
+        requestNotificationPermissionIfNeeded();
 
         AppLogger.i(TAG, "Main screen ready");
+    }
+
+    /**
+     * Asks for notification permission on Android 13+, if it is still missing.
+     *
+     * <p><b>Why this is not optional on a remote fleet.</b> From Android 13
+     * (API 33) posting a notification requires a runtime permission the user
+     * can decline. Declined — or simply never requested — every update
+     * notification is dropped by the system with <em>no error and no log</em>.
+     * The update check runs, finds a new version, posts a notification, and
+     * nothing whatsoever appears.</p>
+     *
+     * <p>That failure is completely invisible from the server side, which makes
+     * it one of the hardest things to diagnose on a device you cannot pick up.
+     * The library cannot request the permission itself — a runtime permission
+     * dialog must be launched from an Activity — so the host app must, and this
+     * is where.</p>
+     *
+     * <p>{@code OtaUpdater.canPostNotifications()} covers both the permission
+     * and the user having switched notifications off in Settings, so it is a
+     * truer test than a bare permission check.</p>
+     */
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            // Below Android 13 notifications need no runtime permission.
+            return;
+        }
+        if (OtaUpdater.canPostNotifications(this)) {
+            return;
+        }
+        AppLogger.i(TAG, "Requesting notification permission so update alerts can be shown");
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
 
     /**
@@ -109,23 +173,32 @@ public final class MainActivity extends BaseActivity {
     }
 
     /**
-     * Re-checks for a discovered update whenever the screen comes forward.
+     * Offers any waiting update, once per visit to this screen.
      *
-     * <p>A manual check is asynchronous: it is handed to WorkManager and
-     * completes a moment later on a background thread, so there is nothing to
-     * report at the instant the button is tapped.</p>
+     * <p>A manual check is asynchronous — handed to WorkManager and completed a
+     * moment later on a background thread — so there is nothing to report at the
+     * instant the button is tapped. By the time the user next looks at this
+     * screen the result exists, which makes {@code onResume} the natural place
+     * to surface it.</p>
      *
-     * <p>By the time the user next looks at this screen, the result exists.
-     * Opening the update screen here means they are not left wondering whether
-     * the button did anything, which is the usual complaint about
-     * "check for updates" buttons.</p>
+     * <p>{@link #updateDialogShownThisSession} stops the dialog reappearing
+     * every time the user returns from Settings or the update screen. Being
+     * asked once is a prompt; being asked repeatedly is nagging, and nagging
+     * teaches people to dismiss dialogs without reading them — exactly the
+     * habit you do not want when a genuinely important update arrives.</p>
+     *
+     * <p>Declining costs the user nothing permanent: the update stays listed in
+     * Settings until it is installed.</p>
      */
     @Override
     protected void onResume() {
         super.onResume();
-        if (OtaUpdater.getPendingUpdate(this) != null) {
-            AppLogger.i(TAG, "A pending update was found; offering it");
-            OtaUpdater.openUpdateScreen(this);
+        if (updateDialogShownThisSession) {
+            return;
+        }
+        if (OtaUpdater.showUpdateDialogIfAvailable(this)) {
+            updateDialogShownThisSession = true;
+            AppLogger.i(TAG, "Offered a pending update to the user");
         }
     }
 

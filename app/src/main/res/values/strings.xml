@@ -67,4 +67,47 @@
     <!-- Shown when a check finds the app is already current. -->
     <string name="main_update_none">You are on the latest version.</string>
 
+    <!-- Content description for the settings icon, read aloud by TalkBack. -->
+    <string name="main_action_settings">Settings</string>
+
+    <!-- ==================== Settings screen ==================== -->
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_action_back">Back</string>
+
+    <string name="settings_section_about">ABOUT</string>
+    <string name="settings_row_app_name">Application</string>
+    <string name="settings_row_installed_version">Installed version</string>
+    <string name="settings_row_package">Package</string>
+
+    <!--
+      Version name AND version code together. The name is what a user reports;
+      the code is what actually decides whether an update applies. Showing both
+      makes "why isn't it updating?" answerable at a glance.
+      %1$s = version name, %2$d = version code.
+    -->
+    <string name="settings_version_format">%1$s (build %2$d)</string>
+
+    <string name="settings_section_updates">UPDATES</string>
+    <string name="settings_update_available">Update available</string>
+    <string name="settings_update_version_format">Version %1$s — tap to install</string>
+    <string name="settings_update_none">No update available</string>
+    <string name="settings_update_none_subtitle">This device is running the latest published version.</string>
+    <string name="settings_row_check_updates">Check for updates</string>
+
+    <!-- %1$d is the configured interval in hours. -->
+    <string name="settings_check_interval_format">Checks automatically about every %1$d hours</string>
+
+    <string name="settings_section_rollback">ROLLBACK</string>
+    <string name="settings_row_rollback">Go back one version</string>
+    <string name="settings_rollback_version_format">Restore version %1$s</string>
+    <string name="settings_rollback_unavailable">Nothing to go back to yet. A rollback becomes available once a second version has been published.</string>
+
+    <!--
+      Standing warning, shown whenever rollback is available. The constraint is
+      a platform rule the user cannot change, and it is far better met here than
+      as an error halfway through an install.
+    -->
+    <string name="settings_rollback_note">Note: Android only allows installing an older version over a newer one for debuggable builds. On a signed release build the app must be uninstalled first, which erases its saved data.</string>
+
 </resources>

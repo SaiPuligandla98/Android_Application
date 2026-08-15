@@ -76,6 +76,23 @@
             android:name=".ui.main.MainActivity"
             android:exported="false" />
 
+        <!--
+          SettingsActivity
+          ================
+          Build information, update control and rollback. Reached from the gear
+          icon on the main screen.
+
+          `parentActivityName` declares MainActivity as its logical parent, so
+          the system handles up-navigation and the back stack correctly even
+          when the screen is entered from somewhere unusual, such as a
+          notification.
+        -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title"
+            android:parentActivityName=".ui.main.MainActivity" />
+
     </application>
 
 </manifest>
