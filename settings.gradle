@@ -53,4 +53,11 @@ dependencyResolutionManagement {
 rootProject.name = "HCRoboticsTestApp"
 
 // ---- Modules that participate in this build --------------------------------
+
+// The application itself.
 include ':app'
+
+// Reusable over-the-air update library. Self-contained and dependency-light,
+// so the whole folder can be copied into any other Android project (or consumed
+// as an AAR) without dragging application code along with it.
+include ':updater'
