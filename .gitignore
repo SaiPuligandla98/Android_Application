@@ -30,6 +30,14 @@ captures/
 
 # --- Signing and secrets -----------------------------------------------------
 # Never commit keystores or the credentials that unlock them.
+#
+# The release keystore is what makes over-the-air updates possible: Android only
+# accepts an update signed with the SAME key as the installed build. Committing
+# it to a public repository would let anyone sign an APK the fleet accepts as a
+# genuine update.
+#
+# Keep the .jks file backed up somewhere safe and OFF this repository. Losing it
+# means no device in the field can ever be updated again.
 *.jks
 *.keystore
 keystore.properties
