@@ -117,6 +117,20 @@ public final class InstallResultReceiver extends BroadcastReceiver {
     @NonNull
     private String describeFailure(int status, @Nullable String message) {
         final String detail = message != null ? " (" + message + ")" : "";
+
+        /*
+         * A downgrade attempt surfaces as INVALID or CONFLICT with a message
+         * naming INSTALL_FAILED_VERSION_DOWNGRADE. Checking the message text is
+         * the only way to distinguish it, and it deserves its own explanation:
+         * the generic "conflict" wording sends people hunting a signing problem
+         * that does not exist.
+         */
+        if (message != null && message.contains("INSTALL_FAILED_VERSION_DOWNGRADE")) {
+            return "Android refused to install an older version over a newer one. Downgrading is "
+                    + "only permitted for debuggable builds. On a release build the app must be "
+                    + "uninstalled first, which erases its saved data.";
+        }
+
         switch (status) {
             case PackageInstaller.STATUS_FAILURE_ABORTED:
                 return "The update was cancelled." + detail;

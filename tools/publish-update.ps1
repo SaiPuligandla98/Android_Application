@@ -143,9 +143,30 @@ re-run. The manifest must describe the APK exactly.
 # silently does nothing, and hours of confused debugging.
 Write-Step "Checking against the currently published manifest"
 
+$previousRelease = $null
+
 if (Test-Path $ManifestPath) {
     $published = Get-Content $ManifestPath -Raw | ConvertFrom-Json
     Write-Ok "Currently published: versionCode $($published.versionCode) ($($published.versionName))"
+
+    <#
+        The release being REPLACED becomes the rollback target of the new one.
+
+        This is the only place that information exists. A device that has taken
+        a bad update cannot ask a server where the previous APK lives, because
+        there is no server - so the manifest has to carry it.
+
+        Only one level is kept: the previous release's own `previous` is
+        dropped. Rollback goes back one version, not to an arbitrary point in
+        history, which keeps the manifest small and the decision simple.
+    #>
+    $previousRelease = [ordered]@{
+        versionCode = $published.versionCode
+        versionName = $published.versionName
+        apkUrl      = $published.apkUrl
+        sha256      = $published.sha256
+        sizeBytes   = $published.sizeBytes
+    }
 
     if ($VersionCode -le $published.versionCode) {
         throw @"
@@ -289,6 +310,15 @@ $manifest = [ordered]@{
     publishedAt  = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 }
 
+# Carry the release being replaced forward as this one's rollback target.
+if ($null -ne $previousRelease) {
+    $manifest["previous"] = $previousRelease
+    Write-Ok "Rollback target: $($previousRelease.versionName) (versionCode $($previousRelease.versionCode))"
+} else {
+    Write-Warn "No previous release, so this version has no rollback target."
+}
+
+# Depth 5 comfortably covers the one level of nesting `previous` introduces.
 $json = $manifest | ConvertTo-Json -Depth 5
 # UTF-8 without BOM: a BOM makes the leading '{' unparseable to org.json on the
 # device, and the resulting error message points nowhere useful.

@@ -76,6 +76,7 @@ public final class UpdateInfo {
     private static final String KEY_MANDATORY = "mandatory";
     private static final String KEY_RELEASE_NOTES = "releaseNotes";
     private static final String KEY_PUBLISHED_AT = "publishedAt";
+    private static final String KEY_PREVIOUS = "previous";
 
     private final long versionCode;
     private final String versionName;
@@ -86,6 +87,22 @@ public final class UpdateInfo {
     private final boolean mandatory;
     private final String releaseNotes;
     private final String publishedAt;
+
+    /**
+     * The release published immediately before this one, or {@code null} if
+     * this is the first.
+     *
+     * <p>Carrying the prior release in the manifest is what makes a rollback
+     * possible at all. A device that has taken a bad update has no other way to
+     * learn where the previous APK lives — it cannot ask a server, because
+     * there is no server.</p>
+     *
+     * <p>Exactly one level deep: a {@code previous} entry never has a
+     * {@code previous} of its own. Rollback goes back one version, not to an
+     * arbitrary point in history, which keeps both the manifest and the
+     * decision simple.</p>
+     */
+    private final UpdateInfo previous;
 
     /**
      * Creates an update description. Prefer {@link #fromJson(JSONObject)} for
@@ -100,6 +117,7 @@ public final class UpdateInfo {
      * @param mandatory    whether the user may postpone the update
      * @param releaseNotes user-facing summary of the release
      * @param publishedAt  ISO-8601 publication timestamp, informational
+     * @param previous     the release published before this one, or {@code null}
      */
     public UpdateInfo(long versionCode,
                       @NonNull String versionName,
@@ -109,7 +127,8 @@ public final class UpdateInfo {
                       int minSdk,
                       boolean mandatory,
                       @NonNull String releaseNotes,
-                      @NonNull String publishedAt) {
+                      @NonNull String publishedAt,
+                      @Nullable UpdateInfo previous) {
         this.versionCode = versionCode;
         this.versionName = versionName;
         this.apkUrl = apkUrl;
@@ -119,6 +138,7 @@ public final class UpdateInfo {
         this.mandatory = mandatory;
         this.releaseNotes = releaseNotes;
         this.publishedAt = publishedAt;
+        this.previous = previous;
     }
 
     /**
@@ -137,6 +157,34 @@ public final class UpdateInfo {
      */
     @NonNull
     public static UpdateInfo fromJson(@NonNull JSONObject json) throws JSONException {
+        /*
+         * The nested "previous" entry is parsed one level deep only. A malformed
+         * or absent one is tolerated rather than fatal: losing the ability to
+         * roll back is a degraded experience, whereas rejecting the whole
+         * manifest would stop the device updating at all. The less important
+         * feature must never break the more important one.
+         */
+        UpdateInfo previousRelease = null;
+        final JSONObject previousJson = json.optJSONObject(KEY_PREVIOUS);
+        if (previousJson != null) {
+            try {
+                previousRelease = new UpdateInfo(
+                        previousJson.getLong(KEY_VERSION_CODE),
+                        previousJson.getString(KEY_VERSION_NAME),
+                        previousJson.getString(KEY_APK_URL),
+                        previousJson.getString(KEY_SHA256).trim().toLowerCase(java.util.Locale.US),
+                        previousJson.optLong(KEY_SIZE_BYTES, 0L),
+                        previousJson.optInt(KEY_MIN_SDK, 0),
+                        false,
+                        previousJson.optString(KEY_RELEASE_NOTES, ""),
+                        previousJson.optString(KEY_PUBLISHED_AT, ""),
+                        null);
+            } catch (JSONException ignored) {
+                // Rollback simply becomes unavailable; the update still works.
+                previousRelease = null;
+            }
+        }
+
         return new UpdateInfo(
                 json.getLong(KEY_VERSION_CODE),
                 json.getString(KEY_VERSION_NAME),
@@ -146,7 +194,8 @@ public final class UpdateInfo {
                 json.optInt(KEY_MIN_SDK, 0),
                 json.optBoolean(KEY_MANDATORY, false),
                 json.optString(KEY_RELEASE_NOTES, ""),
-                json.optString(KEY_PUBLISHED_AT, ""));
+                json.optString(KEY_PUBLISHED_AT, ""),
+                previousRelease);
     }
 
     /**
@@ -161,7 +210,7 @@ public final class UpdateInfo {
      */
     @NonNull
     public JSONObject toJson() throws JSONException {
-        return new JSONObject()
+        final JSONObject json = new JSONObject()
                 .put(KEY_VERSION_CODE, versionCode)
                 .put(KEY_VERSION_NAME, versionName)
                 .put(KEY_APK_URL, apkUrl)
@@ -171,6 +220,24 @@ public final class UpdateInfo {
                 .put(KEY_MANDATORY, mandatory)
                 .put(KEY_RELEASE_NOTES, releaseNotes)
                 .put(KEY_PUBLISHED_AT, publishedAt);
+        if (previous != null) {
+            json.put(KEY_PREVIOUS, previous.toJson());
+        }
+        return json;
+    }
+
+    /**
+     * Returns the release published immediately before this one.
+     *
+     * <p>This is the rollback target. {@code null} means rollback is
+     * unavailable, either because this is the first release or because the
+     * manifest omitted the entry.</p>
+     *
+     * @return the previous release, or {@code null}
+     */
+    @Nullable
+    public UpdateInfo getPrevious() {
+        return previous;
     }
 
     /**

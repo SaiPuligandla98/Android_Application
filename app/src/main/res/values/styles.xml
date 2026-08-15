@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  styles.xml  |  Reusable widget styles
+ =============================================================================
+
+  A STYLE IS NOT A THEME
+  ======================
+  A THEME is applied to an Activity or a whole app and supplies attributes that
+  every view can look up (?attr/colorPrimary).
+
+  A STYLE is a named bundle of attributes applied to ONE view, exactly as if
+  those attributes had been typed inline.
+
+  WHY THE SETTINGS ROWS USE THEM
+  ==============================
+  The settings screen repeats the same row shape half a dozen times. Without
+  styles that is six copies of padding, text size, colour and background, and a
+  change to row spacing becomes six edits with one inevitably missed.
+
+  With styles it is one edit here.
+
+  Note that styles are referenced as `style="@style/Name"` WITHOUT the android:
+  prefix, and unlike normal attributes a style cannot be set at runtime after
+  inflation. That is why row STATE (enabled, text) is set in code while row
+  APPEARANCE lives here.
+
+  DOT-NOTATION INHERITANCE
+  ========================
+  `SettingsRow.Clickable` would inherit from `SettingsRow` automatically. The
+  clickable variant is written explicitly below instead, because it also needs a
+  background and reads more clearly spelled out.
+ =============================================================================
+-->
+<resources>
+
+    <!--
+      Section header: small, uppercase-feeling label that separates groups of
+      rows. Coloured with the primary brand colour so the eye can find the
+      section boundaries when scanning quickly.
+    -->
+    <style name="SettingsSectionHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">@dimen/spacing_large</item>
+        <item name="android:paddingTop">@dimen/spacing_large</item>
+        <item name="android:paddingEnd">@dimen/spacing_large</item>
+        <item name="android:paddingBottom">@dimen/spacing_small</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+
+    <!-- A non-interactive row: a label with a value beneath it. -->
+    <style name="SettingsRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:paddingStart">@dimen/spacing_large</item>
+        <item name="android:paddingTop">@dimen/spacing_medium</item>
+        <item name="android:paddingEnd">@dimen/spacing_large</item>
+        <item name="android:paddingBottom">@dimen/spacing_medium</item>
+    </style>
+
+    <!--
+      An interactive row.
+
+      `selectableItemBackground` supplies the platform ripple, which is what
+      tells the user the WHOLE ROW is tappable rather than just its text.
+      `clickable` and `focusable` make it reachable by touch, by keyboard and by
+      an accessibility service - all three, not just the first.
+    -->
+    <style name="SettingsRowClickable" parent="SettingsRow">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- The row's label. -->
+    <style name="SettingsRowTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
+
+    <!-- The row's value or explanatory line, quieter than the label. -->
+    <style name="SettingsRowValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+    </style>
+
+    <!-- Hairline separating sections. -->
+    <style name="SettingsDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">@dimen/spacing_medium</item>
+        <item name="android:background">?attr/colorOutline</item>
+    </style>
+
+</resources>

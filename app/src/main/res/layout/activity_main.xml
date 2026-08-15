@@ -51,6 +51,25 @@
     tools:context=".ui.main.MainActivity">
 
     <!--
+      Settings, pinned to the top-right corner and OUTSIDE the centred chain so
+      it does not shift as the content below it changes.
+
+      A borderless button gives the ripple and touch feedback of a real control
+      while showing only the icon. 48dp square is the accessibility minimum for
+      a touch target; the icon itself is 24dp, and the surrounding padding is
+      what makes it comfortably tappable.
+    -->
+    <ImageButton
+        android:id="@+id/button_settings"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/main_action_settings"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
       The HC ROBOTICS brand mark, at the head of the chain.
 
       adjustViewBounds keeps the artwork's aspect ratio (1164x220) whatever

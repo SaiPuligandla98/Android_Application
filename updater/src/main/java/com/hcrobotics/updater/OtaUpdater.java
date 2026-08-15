@@ -1,5 +1,6 @@
 package com.hcrobotics.updater;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
@@ -19,6 +20,7 @@ import com.hcrobotics.updater.internal.ApkInstaller;
 import com.hcrobotics.updater.internal.UpdaterLog;
 import com.hcrobotics.updater.notify.UpdateNotifier;
 import com.hcrobotics.updater.ui.UpdateActivity;
+import com.hcrobotics.updater.ui.UpdatePromptDialog;
 import com.hcrobotics.updater.work.UpdateCheckWorker;
 
 import org.json.JSONException;
@@ -92,6 +94,15 @@ public final class OtaUpdater {
 
     /** Preference key holding the most recently discovered update. */
     private static final String KEY_PENDING_UPDATE = "pending_update";
+
+    /**
+     * Preference key holding the last manifest successfully fetched.
+     *
+     * <p>Kept separately from the pending update. Once the app is current the
+     * pending update is cleared, but the manifest is still needed so a Settings
+     * screen can offer a rollback to the previous published version.</p>
+     */
+    private static final String KEY_LAST_MANIFEST = "last_manifest";
 
     /** Utility class; never instantiated. */
     private OtaUpdater() {
@@ -213,6 +224,124 @@ public final class OtaUpdater {
         final Intent intent = UpdateActivity.createIntent(context, pending);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    /**
+     * Shows the update dialog if an update is waiting, otherwise does nothing.
+     *
+     * <p>Designed to be called unconditionally from a screen's {@code onResume},
+     * so the host app needs no state of its own:</p>
+     *
+     * <pre>
+     * &#64;Override protected void onResume() {
+     *     super.onResume();
+     *     OtaUpdater.showUpdateDialogIfAvailable(this);
+     * }
+     * </pre>
+     *
+     * <p>The dialog presents both version numbers, the download size and the
+     * full release notes, with "Update now" and "Not now". Declining leaves the
+     * update recorded, so {@link #getPendingUpdate} keeps returning it and a
+     * Settings screen can keep offering it until it is installed.</p>
+     *
+     * @param activity the Activity to show the dialog over
+     * @return {@code true} if a dialog was shown
+     */
+    public static boolean showUpdateDialogIfAvailable(@NonNull Activity activity) {
+        final UpdateInfo pending = getPendingUpdate(activity);
+        if (pending == null) {
+            return false;
+        }
+        UpdatePromptDialog.show(activity, pending);
+        return true;
+    }
+
+    /**
+     * Returns the release published immediately before the latest one.
+     *
+     * <p>This is the rollback target — the version {@link #startRollback} would
+     * restore. {@code null} means no rollback is available, either because the
+     * manifest carries no {@code previous} entry or because no check has run
+     * yet.</p>
+     *
+     * <p>Note this reflects the last manifest seen, so it is the version before
+     * the newest PUBLISHED release, which is not necessarily the version that
+     * was installed before the current one.</p>
+     *
+     * @param context any context
+     * @return the previous release, or {@code null} if rollback is unavailable
+     */
+    @Nullable
+    public static UpdateInfo getPreviousVersion(@NonNull Context context) {
+        final UpdateInfo latest = getLastSeenManifest(context);
+        return latest != null ? latest.getPrevious() : null;
+    }
+
+    /**
+     * Starts a rollback to the previous published version.
+     *
+     * <p><b>Android resists this, and you should know why before offering it.</b>
+     * The platform normally refuses to install an APK whose {@code versionCode}
+     * is lower than the installed one, failing with
+     * {@code INSTALL_FAILED_VERSION_DOWNGRADE}. The exception is a debuggable
+     * build, where downgrades are permitted — which is why this works during
+     * development and can fail on a signed release build.</p>
+     *
+     * <p>When the platform refuses, the only route back is uninstalling the app
+     * and installing the older APK by hand, which erases all of its saved data.
+     * The confirmation dialog says so plainly rather than discovering it
+     * afterwards.</p>
+     *
+     * <p>The rollback APK is downloaded and checksum-verified exactly like an
+     * update. Going backwards is not a reason to relax verification.</p>
+     *
+     * @param activity the Activity to show progress in
+     * @return {@code true} if a rollback was started
+     */
+    public static boolean startRollback(@NonNull Activity activity) {
+        final UpdateInfo previousRelease = getPreviousVersion(activity);
+        if (previousRelease == null) {
+            UpdaterLog.d("startRollback() ignored: no previous version is published");
+            return false;
+        }
+        UpdaterLog.i("Starting rollback to " + previousRelease.getVersionName());
+        activity.startActivity(UpdateActivity.createRollbackIntent(activity, previousRelease));
+        return true;
+    }
+
+    /**
+     * Returns the last manifest this device successfully fetched.
+     *
+     * <p>Stored separately from the pending update: once the app is up to date
+     * the pending update is cleared, but the manifest is still needed so
+     * Settings can offer a rollback.</p>
+     *
+     * @param context any context
+     * @return the last manifest seen, or {@code null} if no check has succeeded
+     */
+    @Nullable
+    public static UpdateInfo getLastSeenManifest(@NonNull Context context) {
+        return UpdateInfo.fromStoredString(
+                OtaConfig.prefs(context).getString(KEY_LAST_MANIFEST, null));
+    }
+
+    /**
+     * Records the manifest a check fetched, whether or not it implied an update.
+     *
+     * <p>Public because {@link UpdateCheckWorker} lives in another package; it
+     * is an internal detail.</p>
+     *
+     * @param context  any context
+     * @param manifest the manifest just fetched
+     */
+    public static void storeLastSeenManifest(@NonNull Context context, @NonNull UpdateInfo manifest) {
+        try {
+            OtaConfig.prefs(context).edit()
+                    .putString(KEY_LAST_MANIFEST, manifest.toJson().toString())
+                    .apply();
+        } catch (JSONException e) {
+            UpdaterLog.e("Could not store the fetched manifest", e);
+        }
     }
 
     /**

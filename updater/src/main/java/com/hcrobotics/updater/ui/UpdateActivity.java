@@ -65,6 +65,19 @@ public final class UpdateActivity extends AppCompatActivity {
     /** Intent extra carrying the serialised {@link UpdateInfo}. */
     private static final String EXTRA_UPDATE_JSON = "com.hcrobotics.updater.EXTRA_UPDATE_JSON";
 
+    /** Intent extra marking this as a rollback rather than an update. */
+    private static final String EXTRA_IS_ROLLBACK = "com.hcrobotics.updater.EXTRA_IS_ROLLBACK";
+
+    /**
+     * Whether this screen is restoring an older build rather than installing a
+     * newer one.
+     *
+     * <p>The download and verification path is identical either way — going
+     * backwards is no reason to trust an APK less. Only the wording changes,
+     * and the fact that the platform may refuse the install outright.</p>
+     */
+    private boolean isRollback = false;
+
     /** Where the flow currently stands. */
     private enum Stage {
         /** The user must grant "install unknown apps" before anything else. */
@@ -121,6 +134,22 @@ public final class UpdateActivity extends AppCompatActivity {
         return intent;
     }
 
+    /**
+     * Builds an Intent that restores an older release.
+     *
+     * <p>Identical to {@link #createIntent} apart from a flag that changes the
+     * wording and warns the user that Android may refuse the install.</p>
+     *
+     * @param context         any context
+     * @param previousRelease the release to restore
+     * @return an Intent ready to start
+     */
+    @NonNull
+    public static Intent createRollbackIntent(@NonNull Context context,
+                                              @NonNull UpdateInfo previousRelease) {
+        return createIntent(context, previousRelease).putExtra(EXTRA_IS_ROLLBACK, true);
+    }
+
     /** {@inheritDoc} */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -129,6 +158,7 @@ public final class UpdateActivity extends AppCompatActivity {
         binding = UpdaterActivityUpdateBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        isRollback = getIntent().getBooleanExtra(EXTRA_IS_ROLLBACK, false);
         update = UpdateInfo.fromStoredString(getIntent().getStringExtra(EXTRA_UPDATE_JSON));
         if (update == null) {
             // Nothing to show. Closing is the honest response; an empty screen
@@ -173,8 +203,16 @@ public final class UpdateActivity extends AppCompatActivity {
      * Populates the static parts of the screen from the manifest.
      */
     private void bindUpdateDetails() {
-        binding.textNewVersion.setText(
-                getString(R.string.updater_new_version_format, update.getVersionName()));
+        // A rollback is the same mechanism pointed the other way, so only the
+        // wording changes.
+        binding.textHeading.setText(isRollback
+                ? R.string.updater_heading_rollback
+                : R.string.updater_heading);
+
+        binding.textNewVersion.setText(getString(
+                isRollback ? R.string.updater_restore_version_format
+                           : R.string.updater_new_version_format,
+                update.getVersionName()));
         binding.textInstalledVersion.setText(
                 getString(R.string.updater_installed_version_format,
                         AppVersion.installedVersionName(this)));
