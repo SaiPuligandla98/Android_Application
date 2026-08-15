@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater/AndroidManifest.xml  |  Library manifest
+ =============================================================================
+
+  HOW A LIBRARY MANIFEST WORKS
+  ============================
+  This file is not shipped as-is. At build time the Android Gradle Plugin MERGES
+  it into the consuming application's manifest. Permissions declared here become
+  permissions of the host app; components declared here become components of the
+  host app.
+
+  That is exactly what makes this module plug-and-play: an app that depends on
+  `:updater` automatically inherits every permission and component the updater
+  needs, without the developer copying a single line by hand.
+
+  It also means everything declared here must be genuinely necessary, because
+  the host app inherits it whether it wants it or not.
+
+  WHY EACH PERMISSION IS NEEDED
+  =============================
+  Explained inline below. Three of the four are normal permissions granted at
+  install time; POST_NOTIFICATIONS is a runtime permission the user must accept.
+ =============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Download the update manifest (JSON) and the APK itself.
+      Normal permission: granted automatically at install time.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      Lets WorkManager evaluate its "requires a network connection" constraint,
+      so a check is not attempted while the device is offline.
+      Normal permission.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      REQUEST_INSTALL_PACKAGES : the permission that makes this whole module
+      possible. Required from Android 8.0 (API 26) for an app to ask the system
+      to install an APK.
+
+      IMPORTANT, AND OFTEN MISSED: declaring it is NOT enough. On API 26+ the
+      user must additionally grant "Install unknown apps" to this specific app,
+      in system Settings. ApkInstaller detects when that grant is missing and
+      sends the user straight to the right settings page.
+
+      Note for Play Store distribution: Google restricts this permission. It is
+      appropriate here because this module exists precisely for apps that are
+      distributed OUTSIDE the Play Store (enterprise fleets, kiosks, internal
+      tools). If you also ship the app on Play, you will need a policy
+      declaration or a build flavour without this module.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!--
+      From Android 13 (API 33) posting a notification requires a RUNTIME
+      permission the user can decline. Without it, the "update available"
+      notification is silently dropped: no crash, no error, just nothing.
+
+      OtaUpdater.needsNotificationPermission() and the host app's permission
+      request handle asking for it. See the module README.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+
+        <!--
+          The update screen: release notes, a download button, live progress and
+          the hand-off to the system installer.
+
+          exported="false" because only this library starts it, from its own
+          notification. Nothing outside the app has any business launching it.
+
+          excludeFromRecents keeps a transient update screen out of the app
+          switcher, so the user does not find a stale progress screen there
+          hours later.
+        -->
+        <activity
+            android:name=".ui.UpdateActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/updater_screen_title"
+            android:launchMode="singleTop" />
+
+        <!--
+          Receives the outcome of a PackageInstaller session.
+
+          The install is asynchronous: we hand the system an APK, the system
+          shows its own confirmation dialog, and the result arrives here later
+          as a broadcast. Three outcomes matter:
+
+            STATUS_PENDING_USER_ACTION : the system needs the user to confirm.
+                                         We launch the Intent it hands back.
+            STATUS_SUCCESS             : installed.
+            anything else              : failed; the reason is reported.
+
+          exported="false" so no other app can spoof an install result.
+        -->
+        <receiver
+            android:name=".internal.InstallResultReceiver"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+
+    </application>
+
+</manifest>

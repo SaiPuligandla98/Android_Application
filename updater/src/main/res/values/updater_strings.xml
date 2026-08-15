@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_strings.xml  |  User-visible text for the OTA updater module
+ =============================================================================
+
+  THE `updater_` PREFIX IS MANDATORY
+  ==================================
+  Library resources are merged into the host application's resource table. Two
+  resources with the same name collide, and the app's definition silently wins.
+  A library declaring a bare `@string/title` would break, or be broken by, any
+  app that also has one.
+
+  `resourcePrefix 'updater_'` in build.gradle makes AGP enforce the prefix at
+  build time, so the collision is impossible rather than merely unlikely.
+
+  OVERRIDING THESE FROM THE HOST APP
+  ==================================
+  That same merge order is a useful extension point. Declare a string with the
+  identical name in your app's own res/values/strings.xml and the app's version
+  wins, with no change to this module:
+
+      <string name="updater_notification_title">System update</string>
+
+  The same applies to the module's colours and dimensions. That is how you
+  re-brand the update screen per application.
+
+  TRANSLATION
+  ===========
+  Add updater_strings.xml under values-hi/, values-ta/ and so on. Android
+  selects the right file automatically; no code changes anywhere.
+ =============================================================================
+-->
+<resources>
+
+    <!-- ==================== Notification ==================== -->
+
+    <!-- Title of the "an update is available" notification. -->
+    <string name="updater_notification_title">Update available</string>
+
+    <!-- Body of that notification. %1$s is the new version name, e.g. "1.2.0". -->
+    <string name="updater_notification_text">Version %1$s is ready to install</string>
+
+    <!-- Title shown when an install attempt failed. -->
+    <string name="updater_notification_failed_title">Update failed</string>
+
+    <!--
+      Name of the notification channel, as the user sees it in
+      Settings > Apps > Notifications. Keep it plain: this is the label people
+      use to decide whether to mute these notifications.
+    -->
+    <string name="updater_channel_name">App updates</string>
+
+    <!-- Channel description, shown beneath the name in system Settings. -->
+    <string name="updater_channel_description">Notifies you when a new version of the application is available to install.</string>
+
+    <!-- ==================== Update screen ==================== -->
+
+    <!-- Title of the update Activity, used in the manifest label. -->
+    <string name="updater_screen_title">Application update</string>
+
+    <!-- Heading at the top of the update screen. -->
+    <string name="updater_heading">A new version is available</string>
+
+    <!-- New version. %1$s is the version name. -->
+    <string name="updater_new_version_format">New version: %1$s</string>
+
+    <!-- Currently installed version. %1$s is the version name. -->
+    <string name="updater_installed_version_format">Installed: %1$s</string>
+
+    <!-- Download size. %1$s is a formatted size such as "5.3 MB". -->
+    <string name="updater_size_format">Download size: %1$s</string>
+
+    <!-- Heading above the release notes. -->
+    <string name="updater_release_notes_heading">What\'s new</string>
+
+    <!-- Shown when the publisher supplied no release notes. -->
+    <string name="updater_release_notes_empty">No release notes were published for this version.</string>
+
+    <!-- Warning banner shown when the manifest marks the update mandatory. -->
+    <string name="updater_mandatory_notice">This update is required and cannot be postponed.</string>
+
+    <!-- ==================== Buttons ==================== -->
+
+    <string name="updater_action_download">Download and install</string>
+    <string name="updater_action_install">Install now</string>
+    <string name="updater_action_later">Later</string>
+    <string name="updater_action_grant_permission">Open settings</string>
+    <string name="updater_action_retry">Retry</string>
+
+    <!-- ==================== Status messages ==================== -->
+
+    <!-- Download progress. %1$d is a whole-number percentage. -->
+    <string name="updater_status_downloading">Downloading… %1$d%%</string>
+
+    <!-- Shown while the download runs but no total size is known. -->
+    <string name="updater_status_downloading_unknown">Downloading…</string>
+
+    <string name="updater_status_verifying">Verifying the download…</string>
+    <string name="updater_status_ready">Download complete and verified.</string>
+    <string name="updater_status_installing">Starting the installation…</string>
+
+    <!--
+      Explains the "install unknown apps" grant.
+
+      Worth being explicit: this permission cannot be requested with a normal
+      permission dialog. The user has to visit a settings screen and toggle a
+      switch, and without an explanation that feels alarming rather than routine.
+    -->
+    <string name="updater_permission_required">Android needs your permission before this app can install updates. Tap “Open settings”, turn on the switch, then return here.</string>
+
+    <!-- Content description for the update icon, read aloud by TalkBack. -->
+    <string name="updater_cd_update_icon">Software update</string>
+
+</resources>
