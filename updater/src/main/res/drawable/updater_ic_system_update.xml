@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ =============================================================================
+  updater_ic_system_update.xml  |  Notification and update-screen icon
+ =============================================================================
+
+  WHY A VECTOR AND NOT A PNG
+  ==========================
+  A VectorDrawable is one small XML file that renders crisply at every screen
+  density. The PNG equivalent would be five files (mdpi through xxxhdpi) that
+  all have to be regenerated whenever the artwork changes. For a simple glyph
+  the vector wins on size, sharpness and maintenance.
+
+  THE NOTIFICATION SMALL-ICON RULE
+  ================================
+  Since Android 5.0 the system takes ONLY THE ALPHA CHANNEL of a notification's
+  small icon and re-tints it. Any colour in the artwork is discarded.
+
+  A full-colour icon is therefore rendered as a solid white blob, which is the
+  single most common cosmetic bug in Android notifications. This icon is drawn
+  as a plain white silhouette on transparency, which is exactly what the
+  platform expects.
+
+  The same drawable is reused on the update screen, where `android:tint` in the
+  layout re-colours it to the brand colour.
+
+  ARTWORK
+  =======
+  A phone with a downward arrow: the platform's own visual language for
+  "software update", so it needs no explanation to the user.
+ =============================================================================
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M17,1.01L7,1C5.9,1 5,1.9 5,3v18c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2V3c0,-1.1 -0.9,-1.99 -2,-1.99zM17,19H7V5h10v14zM16,13h-3V8h-2v5H8l4,4 4,-4z" />
+
+</vector>

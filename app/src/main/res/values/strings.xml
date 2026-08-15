@@ -52,4 +52,10 @@
     <!-- The landing screen's welcome message. -->
     <string name="main_welcome_message">Welcome to HC Robotics Android Application</string>
 
+    <!--
+      Running build, shown beneath the welcome message.
+      %1$s is substituted with BuildConfig.VERSION_NAME at runtime.
+    -->
+    <string name="main_version_format">Version %1$s</string>
+
 </resources>

@@ -1,0 +1,117 @@
+/*
+ * =============================================================================
+ *  updater/build.gradle  --  Build script for the `:updater` LIBRARY module
+ * =============================================================================
+ *
+ *  WHAT THIS MODULE IS
+ *  -------------------
+ *  A self-contained, reusable over-the-air (OTA) update library. It lets an
+ *  Android application installed outside the Play Store discover, download,
+ *  verify and install a newer build of itself.
+ *
+ *  APPLICATION MODULE vs LIBRARY MODULE
+ *  ------------------------------------
+ *  `:app` uses `com.android.application` and produces an installable APK.
+ *  This module uses `com.android.library` and produces an AAR - a reusable
+ *  bundle of compiled code plus resources and a manifest, with no launcher
+ *  icon, no application ID and no entry point of its own.
+ *
+ *  DESIGN RULE: STAY DEPENDENCY-LIGHT
+ *  ----------------------------------
+ *  This module is meant to be dropped into ANY of your projects. Every
+ *  dependency it declares is one more chance of a version conflict in the host
+ *  app, so the list is kept deliberately short:
+ *
+ *    * No Retrofit / OkHttp  -> uses java.net.HttpURLConnection (in the JDK).
+ *    * No Gson / Moshi       -> uses org.json (bundled with Android itself).
+ *    * No Firebase           -> push is an OPTIONAL hook the host app calls.
+ *
+ *  What remains is AndroidX, which essentially every Android app already has.
+ * =============================================================================
+ */
+
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.hcrobotics.updater'
+    compileSdk 35
+
+    defaultConfig {
+        /*
+         * A library declares only minSdk. targetSdk and applicationId come from
+         * whichever application module consumes it - a library has no identity
+         * of its own on a device.
+         *
+         * minSdk 24 matches :app. Keep this at or below the minSdk of every
+         * host application, or the build will fail at manifest merge.
+         */
+        minSdk 24
+
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    /*
+     * Every resource in this module must start with `updater_`.
+     *
+     * Library resources are merged into the host application's resource table,
+     * so a library that declares `@string/title` would silently collide with
+     * the app's own `@string/title`. AGP enforces this prefix at build time,
+     * which makes the collision impossible rather than merely unlikely.
+     */
+    resourcePrefix 'updater_'
+
+    buildTypes {
+        release {
+            // Libraries are never minified themselves; the CONSUMING app's R8
+            // run shrinks the merged code. consumer-rules.pro travels with the
+            // AAR to tell that R8 run what it must keep.
+            minifyEnabled false
+            consumerProguardFiles 'consumer-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+}
+
+dependencies {
+    /*
+     * `api` vs `implementation`
+     * ------------------------
+     * api            : the dependency leaks into this module's PUBLIC API, so
+     *                  consumers see it on their compile classpath too.
+     * implementation : an internal detail; consumers never see it. Faster
+     *                  incremental builds and a smaller API surface.
+     *
+     * Everything here is internal, so everything is `implementation`.
+     */
+    implementation libs.androidx.appcompat        // AppCompatActivity for the update screen
+    implementation libs.androidx.core             // NotificationCompat, ContextCompat
+    implementation libs.androidx.constraintlayout // Update screen layout
+    implementation libs.androidx.work.runtime     // Guaranteed periodic update checks
+
+    /*
+     * DELIBERATELY ABSENT: com.google.android.material.
+     *
+     * Material components (MaterialButton, LinearProgressIndicator) require the
+     * host application to use a Material theme. This module is meant to drop
+     * into ANY app, including ones on a plain AppCompat theme, where those
+     * widgets throw at inflation time.
+     *
+     * The update screen therefore uses framework widgets styled by this
+     * module's own drawables, so it renders correctly under every theme. The
+     * cost is a slightly plainer screen; the benefit is that the module cannot
+     * crash a host app it knows nothing about.
+     */
+
+    testImplementation libs.junit
+}

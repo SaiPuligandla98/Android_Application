@@ -53,6 +53,37 @@ public final class AppConfig {
      */
     public static final long SPLASH_DISPLAY_DURATION_MS = 1_500L;
 
+    /**
+     * HTTPS location of the over-the-air update manifest.
+     *
+     * <p>The manifest is a small JSON file committed to the project repository
+     * and served through GitHub's raw endpoint. Publishing an update means
+     * updating this file and attaching the APK to a GitHub Release — both free,
+     * and neither requires running a server.</p>
+     *
+     * <p><b>The branch in this URL matters.</b> It points at {@code master},
+     * the production branch, so devices in the field only ever see releases
+     * that have been merged all the way through. Pointing it at {@code dev}
+     * would ship every work-in-progress build to the whole fleet.</p>
+     *
+     * <p>Generated and updated by {@code tools/publish-update.ps1}.</p>
+     */
+    public static final String UPDATE_MANIFEST_URL =
+            "https://raw.githubusercontent.com/SaiPuligandla98/Android_Application/master/ota/update-manifest.json";
+
+    /**
+     * Hours between automatic background update checks.
+     *
+     * <p>Six hours means a released fix reaches the fleet within a quarter of a
+     * day without waking devices needlessly. Android batches background work,
+     * so treat this as a floor rather than a precise schedule.</p>
+     *
+     * <p>For an update that cannot wait, trigger
+     * {@code OtaUpdater.checkNow(context)} from a push message — see the
+     * updater module's README.</p>
+     */
+    public static final long UPDATE_CHECK_INTERVAL_HOURS = 6L;
+
     /** Utility class — never instantiated. */
     private AppConfig() {
         throw new AssertionError("AppConfig is a constants holder and must not be instantiated.");

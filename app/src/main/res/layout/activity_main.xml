@@ -62,4 +62,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!--
+      Running version, shown directly beneath the welcome message.
+
+      Genuinely useful on a fleet that updates over the air: when someone reports
+      a problem from a device you cannot physically reach, the first question is
+      always "which build is it running?". Putting the answer on screen turns
+      that from a support conversation into a glance.
+
+      Constrained BELOW the welcome text rather than to the parent, so the pair
+      stay together as one block wherever the welcome message ends up.
+    -->
+    <TextView
+        android:id="@+id/text_app_version"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:gravity="center"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_body"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_welcome_message"
+        tools:text="Version 1.1.0" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
