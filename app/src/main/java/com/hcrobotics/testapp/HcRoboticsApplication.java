@@ -2,7 +2,10 @@ package com.hcrobotics.testapp;
 
 import android.app.Application;
 
+import com.hcrobotics.testapp.core.config.AppConfig;
 import com.hcrobotics.testapp.core.util.AppLogger;
+import com.hcrobotics.updater.OtaConfig;
+import com.hcrobotics.updater.OtaUpdater;
 
 /**
  * Process-wide entry point for the HC Robotics Android application.
@@ -58,6 +61,8 @@ public final class HcRoboticsApplication extends Application {
                 + " | buildType=" + BuildConfig.BUILD_TYPE
                 + " | applicationId=" + BuildConfig.APPLICATION_ID);
 
+        initialiseOverTheAirUpdates();
+
         // ---------------------------------------------------------------------
         // Future initialisation hooks go here, for example:
         //
@@ -65,5 +70,38 @@ public final class HcRoboticsApplication extends Application {
         //   ServiceLocator.initialise(this);
         //   ThemeManager.applyPersistedNightMode(this);
         // ---------------------------------------------------------------------
+    }
+
+    /**
+     * Starts the over-the-air update system.
+     *
+     * <p>This is the entire integration with the {@code :updater} module. One
+     * call registers the recurring background check; everything after that -
+     * fetching the manifest, comparing versions, notifying the user,
+     * downloading, verifying the checksum and handing the APK to the system
+     * installer - happens inside the module.</p>
+     *
+     * <p>The call is cheap and non-blocking: it writes a few preferences and
+     * hands a request to WorkManager. No network access occurs here, so app
+     * startup is unaffected.</p>
+     *
+     * <p>Calling this on every launch is intentional and correct. WorkManager
+     * enqueues the check under a unique name, so repeat calls update the
+     * existing schedule rather than stacking duplicates.</p>
+     *
+     * @see AppConfig#UPDATE_MANIFEST_URL for the manifest location
+     */
+    private void initialiseOverTheAirUpdates() {
+        OtaUpdater.initialise(this, new OtaConfig.Builder()
+                .manifestUrl(AppConfig.UPDATE_MANIFEST_URL)
+                .checkIntervalHours(AppConfig.UPDATE_CHECK_INTERVAL_HOURS)
+                // false: devices in the field are often on mobile data only, and
+                // an update that never arrives is worse than one that costs a
+                // few megabytes. Set true for large APKs on metered fleets.
+                .requireUnmeteredNetwork(false)
+                // Keep update diagnostics in release builds. These devices are
+                // remote; without logs, a failed rollout is invisible.
+                .debugLogging(true)
+                .build());
     }
 }
