@@ -36,7 +36,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.settings.SettingsActivity">
+
+    <!--
+      See activity_main.xml for the full explanation. In short: targetSdk 35
+      forces edge-to-edge, so without this the top bar's buttons sit underneath
+      the system bars and stop responding to touches - in landscape the
+      navigation bar sits on the right edge, directly over the Settings button.
+    -->
 
     <!--
       The same shared top bar as the home screen.
@@ -75,7 +83,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_header">
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -223,7 +231,62 @@
             </LinearLayout>
 
             <!-- ============================================================
-                 4. NOTIFICATIONS
+                 4. APPEARANCE
+                 ============================================================
+
+                 A RadioGroup, not three hand-rolled rows.
+
+                 Radio buttons are the correct control for "pick exactly one of
+                 these", and using the real widget means the platform handles
+                 mutual exclusion, keyboard navigation and TalkBack announcements
+                 ("Dark, radio button, 2 of 3") for free. Faking it with
+                 TextViews and a tick icon looks similar and behaves worse for
+                 anyone not using touch.
+                 ============================================================ -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_appearance" />
+
+            <RadioGroup
+                android:id="@+id/group_theme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/spacing_large"
+                android:paddingEnd="@dimen/spacing_large"
+                android:paddingBottom="@dimen/spacing_small">
+
+                <RadioButton
+                    android:id="@+id/radio_theme_system"
+                    style="@style/SettingsRadio"
+                    android:text="@string/settings_theme_system" />
+
+                <RadioButton
+                    android:id="@+id/radio_theme_light"
+                    style="@style/SettingsRadio"
+                    android:text="@string/settings_theme_light" />
+
+                <RadioButton
+                    android:id="@+id/radio_theme_dark"
+                    style="@style/SettingsRadio"
+                    android:text="@string/settings_theme_dark" />
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/spacing_large"
+                android:paddingEnd="@dimen/spacing_large"
+                android:paddingBottom="@dimen/spacing_medium"
+                android:text="@string/settings_theme_note"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/text_size_caption" />
+
+            <View style="@style/SettingsDivider" />
+
+            <!-- ============================================================
+                 5. NOTIFICATIONS
                  ============================================================ -->
             <TextView
                 style="@style/SettingsSectionHeader"

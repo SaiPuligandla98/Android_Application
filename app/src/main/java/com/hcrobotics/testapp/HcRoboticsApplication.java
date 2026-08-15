@@ -3,6 +3,7 @@ package com.hcrobotics.testapp;
 import android.app.Application;
 
 import com.hcrobotics.testapp.core.config.AppConfig;
+import com.hcrobotics.testapp.core.theme.ThemeManager;
 import com.hcrobotics.testapp.core.util.AppLogger;
 import com.hcrobotics.updater.OtaConfig;
 import com.hcrobotics.updater.OtaUpdater;
@@ -60,6 +61,13 @@ public final class HcRoboticsApplication extends Application {
                 + " | versionName=" + BuildConfig.VERSION_NAME
                 + " | buildType=" + BuildConfig.BUILD_TYPE
                 + " | applicationId=" + BuildConfig.APPLICATION_ID);
+
+        /*
+         * The theme MUST be applied before any Activity inflates its views.
+         * Applying it later means the first screen paints in the wrong theme
+         * and then visibly flips - the end state is right, but it looks broken.
+         */
+        ThemeManager.applyStoredMode(this);
 
         initialiseOverTheAirUpdates();
 

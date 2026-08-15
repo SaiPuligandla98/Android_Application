@@ -94,8 +94,8 @@ android {
         // versionCode : monotonically increasing integer used by the Play Store
         //               to decide what constitutes an "update".
         // versionName : human-readable string shown in Settings > Apps.
-        versionCode 6
-        versionName "1.5.0"
+        versionCode 7
+        versionName "1.6.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

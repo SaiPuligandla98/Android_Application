@@ -95,6 +95,24 @@
         <item name="android:textSize">@dimen/text_size_caption</item>
     </style>
 
+    <!--
+      A theme choice in the Appearance section.
+
+      minHeight is the 48dp accessibility touch-target minimum. A RadioButton's
+      own text is smaller than that, and a control that is legible but awkward
+      to hit is a control people mis-tap.
+    -->
+    <style name="SettingsRadio">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:paddingStart">@dimen/spacing_small</item>
+        <item name="android:paddingTop">@dimen/spacing_small</item>
+        <item name="android:paddingBottom">@dimen/spacing_small</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
+
     <!-- Hairline separating sections. -->
     <style name="SettingsDivider">
         <item name="android:layout_width">match_parent</item>
