@@ -236,7 +236,25 @@ if ($DryRun) {
 } else {
     # Delete any existing release for this tag so re-running after a failed
     # attempt is safe rather than an error.
-    gh release delete $Tag --yes --cleanup-tag 2>$null | Out-Null
+    #
+    # Two subtleties, both learned the hard way:
+    #
+    #  * `gh release delete` writes "release not found" to STDERR when there is
+    #    nothing to delete. With $ErrorActionPreference = "Stop", PowerShell
+    #    promotes any native stderr output to a terminating error - so the
+    #    normal case (first publish of a tag) would abort the script. The
+    #    preference is therefore relaxed around this one call and $LASTEXITCODE
+    #    reset, because "nothing to delete" is a success for our purposes.
+    #
+    #  * `--cleanup-tag` is deliberately NOT used. It would delete the git tag
+    #    as well, and tags here are created and pushed by the release process
+    #    before this script runs. Removing one would silently detach the release
+    #    from the commit it documents.
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    gh release delete $Tag --yes 2>&1 | Out-Null
+    $ErrorActionPreference = $previousPreference
+    $global:LASTEXITCODE = 0
 
     gh release create $Tag $ApkPath `
         --title "$GradleVersionName" `
@@ -290,15 +308,47 @@ Write-Step "Committing the manifest to '$Branch'"
 if ($DryRun) {
     Write-Warn "DRY RUN: would commit and push ota/update-manifest.json to $Branch"
 } else {
-    $currentBranch = git rev-parse --abbrev-ref HEAD
-    git checkout $Branch
-    git add $ManifestPath
-    git commit -m "release: publish version $GradleVersionName (versionCode $VersionCode)"
-    git push origin $Branch
-    if ($LASTEXITCODE -ne 0) {
-        throw "Could not push the manifest. The release exists but NO DEVICE WILL SEE IT until this file is pushed."
+    <#
+        Git writes ordinary progress to STDERR - "Already on 'master'",
+        "Switched to branch", the push summary. With
+        $ErrorActionPreference = "Stop", PowerShell promotes ANY native stderr
+        output to a terminating error, so a perfectly successful checkout would
+        abort the script.
+
+        The preference is therefore relaxed for this block and success is judged
+        the correct way: by $LASTEXITCODE.
+    #>
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        $currentBranch = (git rev-parse --abbrev-ref HEAD 2>&1).Trim()
+
+        if ($currentBranch -ne $Branch) {
+            git checkout $Branch 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Could not switch to '$Branch'. Commit or stash your changes first."
+            }
+        }
+
+        git add $ManifestPath 2>&1 | Out-Null
+        git commit -m "release: publish version $GradleVersionName (versionCode $VersionCode)" 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            # Nothing to commit means the manifest is byte-identical to what is
+            # already on the branch. Not an error, but worth saying out loud.
+            Write-Warn "Manifest unchanged; nothing to commit."
+        }
+
+        git push origin $Branch 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Could not push the manifest. The release exists but NO DEVICE WILL SEE IT until this file reaches '$Branch'."
+        }
+
+        if ($currentBranch -ne $Branch) {
+            git checkout $currentBranch 2>&1 | Out-Null
+        }
+    } finally {
+        $ErrorActionPreference = $previousPreference
     }
-    git checkout $currentBranch
     Write-Ok "Manifest pushed. Devices will pick it up on their next check."
 }
 
