@@ -1,0 +1,413 @@
+<!--
+  ota-workflow.html  |  Source for docs/OTA_WORKFLOW.pdf
+
+  Rendered to a single A3 landscape page with headless Chrome:
+
+    chrome --headless --disable-gpu --no-pdf-header-footer ^
+           --print-to-pdf="docs/OTA_WORKFLOW.pdf" "docs/ota-workflow.html"
+
+  Everything is inline: no external fonts, stylesheets or images, so the file
+  renders identically on any machine and can be re-exported years from now.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HC Robotics - OTA Update Workflow</title>
+<style>
+  /* A3 landscape = 420mm x 297mm. Margins kept tight so one page holds the
+     whole flow without shrinking the text below readable size. */
+  @page { size: A3 landscape; margin: 8mm; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 8.2pt;
+    line-height: 1.32;
+    color: #14202b;
+    background: #fff;
+  }
+
+  /* ---- Header ---------------------------------------------------------- */
+  .head { display: flex; align-items: baseline; gap: 10mm; border-bottom: 2.2pt solid #07518D;
+          padding-bottom: 2mm; margin-bottom: 3mm; }
+  .head h1 { font-size: 17pt; color: #07518D; letter-spacing: -0.2pt; }
+  .head .sub { font-size: 8.6pt; color: #5F6368; }
+  .head .rule { margin-left: auto; font-size: 8.4pt; color: #14202b;
+                border: 1pt solid #EC803B; border-radius: 2mm; padding: 1.2mm 3mm; background: #FDF3EC; }
+  .head .rule b { color: #C2410C; }
+
+  /* ---- Four lanes ------------------------------------------------------ */
+  .lanes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; }
+
+  .lane { border: 1pt solid #DADCE0; border-radius: 2mm; overflow: hidden; }
+  .lane > h2 { font-size: 8.6pt; letter-spacing: 0.4pt; padding: 1.8mm 2.5mm; color: #fff; }
+  .lane .body { padding: 2.2mm; }
+
+  .l1 > h2 { background: #5F6368; }
+  .l2 > h2 { background: #07518D; }
+  .l3 > h2 { background: #0F7B4F; }
+  .l4 > h2 { background: #B45309; }
+
+  .who { font-size: 7.2pt; font-weight: 700; text-transform: uppercase;
+         letter-spacing: 0.3pt; opacity: 0.85; }
+
+  /* ---- Step boxes ------------------------------------------------------ */
+  .step { border: 0.8pt solid #C9CED4; border-left: 2.4pt solid #07518D;
+          border-radius: 1.4mm; padding: 1.6mm 2mm; background: #fff; }
+  .l1 .step { border-left-color: #5F6368; }
+  .l3 .step { border-left-color: #0F7B4F; }
+  .l4 .step { border-left-color: #B45309; }
+
+  .step .t { font-weight: 700; font-size: 8.2pt; }
+  .step .n { display: inline-block; min-width: 4.6mm; font-weight: 700; color: #07518D; }
+  .l1 .step .n { color: #5F6368; }
+  .l3 .step .n { color: #0F7B4F; }
+  .l4 .step .n { color: #B45309; }
+  .step .d { color: #4A5560; font-size: 7.6pt; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 7.4pt;
+         background: #F1F3F5; padding: 0 0.8mm; border-radius: 0.8mm; color: #0B3D66; }
+
+  .arrow { text-align: center; color: #9AA3AB; font-size: 8pt; line-height: 1; margin: 1.1mm 0; }
+
+  /* Decision diamond, flattened to a labelled bar so it fits the column. */
+  .gate { border: 1pt dashed #B45309; background: #FFF8F0; border-radius: 1.4mm;
+          padding: 1.6mm 2mm; }
+  .gate .t { font-weight: 700; color: #92400E; font-size: 8.2pt; }
+  .gate .no { color: #B91C1C; font-size: 7.6pt; font-weight: 600; }
+
+  .stop { border: 1pt solid #F0C0C0; background: #FDF2F2; color: #991B1B;
+          border-radius: 1.4mm; padding: 1.3mm 2mm; font-size: 7.6pt; font-weight: 600; }
+
+  .done { border: 1pt solid #A7D8BE; background: #EFF9F3; color: #14603F;
+          border-radius: 1.4mm; padding: 1.6mm 2mm; font-weight: 700; }
+
+  /* ---- Bottom band ----------------------------------------------------- */
+  .band { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 3.5mm; margin-top: 3.5mm; }
+  .panel { border: 1pt solid #DADCE0; border-radius: 2mm; overflow: hidden; }
+  .panel > h3 { font-size: 8.4pt; padding: 1.6mm 2.5mm; background: #EDF1F5; color: #07518D;
+                letter-spacing: 0.3pt; border-bottom: 1pt solid #DADCE0; }
+  .panel .body { padding: 2mm 2.5mm; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+  td { padding: 0.9mm 0; vertical-align: top; border-bottom: 0.5pt solid #EDEFF1; }
+  tr:last-child td { border-bottom: none; }
+  td.k { font-weight: 700; white-space: nowrap; padding-right: 2.5mm; color: #14202b; }
+
+  ul { list-style: none; }
+  li { padding: 0.9mm 0 0.9mm 3.6mm; position: relative; font-size: 7.5pt;
+       border-bottom: 0.5pt solid #EDEFF1; }
+  li:last-child { border-bottom: none; }
+  li::before { content: "!"; position: absolute; left: 0; font-weight: 700; color: #C2410C; }
+  li b { color: #14202b; }
+
+  .foot { margin-top: 2.5mm; font-size: 7pt; color: #7A828A; display: flex; gap: 6mm; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Over-the-Air Update Flow</h1>
+  <div class="sub">HC Robotics Android application &middot; GitHub Releases + GitHub Actions &middot; no server, no cost</div>
+  <div class="rule"><b>The one switch:</b> if <code>versionCode</code> is not increased, nothing ships.</div>
+</div>
+
+<div class="lanes">
+
+  <!-- ================= LANE 1 : ONE-TIME SETUP ================= -->
+  <div class="lane l1">
+    <h2>A &middot; ONE-TIME SETUP <span class="who">&mdash; you, once ever</span></h2>
+    <div class="body">
+
+      <div class="step">
+        <div class="t"><span class="n">1</span>Create the signing key</div>
+        <div class="d"><code>keytool -genkeypair</code> &rarr; <code>hcrobotics-release.jks</code><br>
+        Valid 30 years. <b>This key can never change.</b></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">2</span>Save it locally</div>
+        <div class="d"><code>keystore.properties</code> in the repo root.<br>
+        Gitignored &mdash; never committed.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">3</span>Add 4 GitHub Secrets</div>
+        <div class="d">Settings &rarr; Secrets &rarr; Actions<br>
+        <code>KEYSTORE_BASE64</code> (the .jks, base64)<br>
+        <code>KEYSTORE_PASSWORD</code><br>
+        <code>KEY_ALIAS</code> = <code>hcrobotics</code><br>
+        <code>KEY_PASSWORD</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">4</span>Token permissions</div>
+        <div class="d">Contents: Read+Write<br>Workflows: Read+Write</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">5</span>Install app once on device</div>
+        <div class="d">Cable, or download the APK from the Releases page in the phone browser.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">6</span>Grant 2 permissions on phone</div>
+        <div class="d"><b>Notifications</b> &rarr; ON<br>
+        <b>Install unknown apps</b> &rarr; Allow<br>
+        Without these the update fails <b>silently</b>.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="done">Setup complete &mdash; never needed again</div>
+
+    </div>
+  </div>
+
+  <!-- ================= LANE 2 : MAKE A RELEASE ================= -->
+  <div class="lane l2">
+    <h2>B &middot; MAKE A RELEASE <span class="who">&mdash; every change</span></h2>
+    <div class="body">
+
+      <div class="step">
+        <div class="t"><span class="n">7</span>Branch from master</div>
+        <div class="d"><code>git checkout -b release/vX.Y.Z master</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">8</span>Write the code</div>
+        <div class="d">Feature or fix, in the app or a module.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step" style="border-left-color:#EC803B">
+        <div class="t"><span class="n" style="color:#C2410C">9</span>Bump the version</div>
+        <div class="d"><code>app/build.gradle</code><br>
+        <code>versionCode 10</code> &rarr; <code>11</code> &nbsp;<b>(must increase)</b><br>
+        <code>versionName "1.9.0"</code> &rarr; <code>"2.0.0"</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">10</span>Build &amp; check locally</div>
+        <div class="d"><code>gradlew :app:assembleRelease</code><br><code>gradlew :app:lintRelease</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">11</span>Push the branch</div>
+        <div class="d"><code>git push -u origin release/vX.Y.Z</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">12</span>Open a Pull Request</div>
+        <div class="d">base <code>master</code> &larr; head <code>release/vX.Y.Z</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step" style="border-left-color:#0F7B4F">
+        <div class="t"><span class="n" style="color:#0F7B4F">13</span>Merge the PR</div>
+        <div class="d"><b>This is the trigger.</b> Everything after it is automatic.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= LANE 3 : CI PUBLISHES ================= -->
+  <div class="lane l3">
+    <h2>C &middot; CI PUBLISHES <span class="who">&mdash; automatic, ~2 min</span></h2>
+    <div class="body">
+
+      <div class="step">
+        <div class="t"><span class="n">14</span>Workflow starts</div>
+        <div class="d"><code>.github/workflows/publish-ota-update.yml</code><br>on push to <code>master</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">15</span>Read version</div>
+        <div class="d">Parses <code>versionCode</code> / <code>versionName</code> from <code>app/build.gradle</code>.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="gate">
+        <div class="t">16 &nbsp;new code &gt; published code?</div>
+        <div class="no">NO &rarr; stop quietly, nothing published</div>
+      </div>
+      <div class="arrow">&#9660; YES</div>
+
+      <div class="step">
+        <div class="t"><span class="n">17</span>Restore the keystore</div>
+        <div class="d">Decodes <code>KEYSTORE_BASE64</code> to a temp file.<br>
+        Missing secret &rarr; <b>build fails on purpose</b>.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">18</span>Build signed release APK</div>
+        <div class="d"><code>assembleRelease</code> + R8 shrink.<br>
+        Same key every time. ~2 MB.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">19</span>Verify signature &amp; hash</div>
+        <div class="d"><code>apksigner verify</code>, then SHA-256 of the APK.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">20</span>Create Release + tag</div>
+        <div class="d">Tag <code>vX.Y.Z</code>, APK uploaded as the release asset.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">21</span>Write the manifest</div>
+        <div class="d"><code>ota/update-manifest.json</code><br>
+        version, apkUrl, sha256, size, notes,<br>
+        + <code>previous</code> = rollback target</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step" style="border-left-color:#EC803B">
+        <div class="t"><span class="n" style="color:#C2410C">22</span>Commit manifest to master</div>
+        <div class="d"><b>This starts the rollout.</b> The Release alone is invisible to devices.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= LANE 4 : DEVICE ================= -->
+  <div class="lane l4">
+    <h2>D &middot; ON THE PHONE <span class="who">&mdash; automatic</span></h2>
+    <div class="body">
+
+      <div class="step">
+        <div class="t"><span class="n">23</span>App checks</div>
+        <div class="d"><b>On every app open</b> &mdash; instant.<br>
+        <b>Plus every ~6 h</b> in background (WorkManager).</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">24</span>Fetch the manifest</div>
+        <div class="d">HTTPS GET of <code>raw.githubusercontent.com/.../ota/update-manifest.json</code></div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="gate">
+        <div class="t">25 &nbsp;manifest code &gt; installed code?</div>
+        <div class="no">NO &rarr; "up to date", stop</div>
+      </div>
+      <div class="arrow">&#9660; YES</div>
+
+      <div class="step">
+        <div class="t"><span class="n">26</span>Notification appears</div>
+        <div class="d">"Update available &mdash; Version X.Y.Z"<br>
+        Also: dot on the Settings icon.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">27</span>User taps &rarr; dialog</div>
+        <div class="d">Shows old &rarr; new version, download size, what's new.<br>
+        "Not now" keeps it in Settings.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="step">
+        <div class="t"><span class="n">28</span>Download the APK</div>
+        <div class="d">From the GitHub Release, into app-private storage.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="gate">
+        <div class="t">29 &nbsp;SHA-256 matches manifest?</div>
+        <div class="no">NO &rarr; delete file, refuse to install</div>
+      </div>
+      <div class="arrow">&#9660; YES</div>
+
+      <div class="step">
+        <div class="t"><span class="n">30</span>System install prompt</div>
+        <div class="d"><code>PackageInstaller</code> &rarr; Android asks the user to confirm. Signature must match.</div>
+      </div>
+      <div class="arrow">&#9660;</div>
+
+      <div class="done">31 &nbsp;Updated &mdash; app restarts</div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= BOTTOM BAND ================= -->
+<div class="band">
+
+  <div class="panel">
+    <h3>LIMITATIONS &amp; TRAPS &mdash; read before releasing</h3>
+    <div class="body">
+      <ul>
+        <li><b>The signing key can never change.</b> A different key = <code>INSTALL_FAILED_UPDATE_INCOMPATIBLE</code>. Lose the <code>.jks</code> and no device can ever be updated again &mdash; each must be uninstalled and reinstalled by hand. <b>Keep 2 backups.</b></li>
+        <li><b>Debug and release are different apps.</b> Different applicationId and different key. Moving a device from debug to release needs one uninstall.</li>
+        <li><b>Forgetting to bump <code>versionCode</code></b> means CI publishes nothing. No error, just no update.</li>
+        <li><b>CDN cache ~5 minutes.</b> A device checking immediately after publish may still receive the old manifest. Wait, then re-open.</li>
+        <li><b>Background check is "at least 6 h", not exactly.</b> Android batches it. Opening the app checks instantly.</li>
+        <li><b>Notifications off (Android 13+)</b> = update alerts silently dropped. Settings screen warns when this is the case.</li>
+        <li><b>"Install unknown apps" not granted</b> = install cannot start.</li>
+        <li><b>Rollback only works on debuggable builds.</b> Android blocks installing an older version over a newer one; on release builds the app must be uninstalled first (data is erased).</li>
+        <li><b>Repo must be public</b> for devices to download without a token. A token embedded in an APK is readable by anyone.</li>
+        <li><b>Never hand-edit <code>ota/update-manifest.json</code>.</b> CI owns it on master. Editing it on a branch causes merge conflicts &mdash; always keep master's copy.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>TIMING &mdash; merge to phone</h3>
+    <div class="body">
+      <table>
+        <tr><td class="k">CI build + publish</td><td>~2 min</td></tr>
+        <tr><td class="k">CDN cache clears</td><td>~5 min</td></tr>
+        <tr><td class="k">Phone, app opened</td><td>seconds</td></tr>
+        <tr><td class="k">Phone, left idle</td><td>up to ~6 h</td></tr>
+        <tr><td class="k"><b>Realistic total</b></td><td><b>~7 min</b> if someone opens the app</td></tr>
+        <tr><td class="k">Force it now</td><td>Settings &rarr; Check for updates</td></tr>
+        <tr><td class="k">Make it instant</td><td>Add Firebase Cloud Messaging &rarr; call <code>OtaUpdater.checkNow()</code> (free, optional)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>WHAT IS CONFIGURED WHERE</h3>
+    <div class="body">
+      <table>
+        <tr><td class="k">Manifest URL</td><td><code>AppConfig.UPDATE_MANIFEST_URL</code> &mdash; points at <b>master</b></td></tr>
+        <tr><td class="k">Check interval</td><td><code>AppConfig.UPDATE_CHECK_INTERVAL_HOURS</code></td></tr>
+        <tr><td class="k">Version</td><td><code>app/build.gradle</code></td></tr>
+        <tr><td class="k">Signing (local)</td><td><code>keystore.properties</code> (gitignored)</td></tr>
+        <tr><td class="k">Signing (CI)</td><td>4 GitHub Secrets</td></tr>
+        <tr><td class="k">Pipeline</td><td><code>.github/workflows/publish-ota-update.yml</code></td></tr>
+        <tr><td class="k">What devices read</td><td><code>ota/update-manifest.json</code> (written by CI only)</td></tr>
+        <tr><td class="k">Update client</td><td><code>:updater</code> module &mdash; reusable in any app</td></tr>
+        <tr><td class="k">Logs on device</td><td><code>adb logcat -s HCOta</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <span><b>3 safety layers:</b> HTTPS only &rarr; SHA-256 verified before install &rarr; Android signature check.</span>
+  <span><b>Cost:</b> zero &mdash; GitHub Releases hosts the APK, Actions is free on public repos.</span>
+  <span><b>Rollback:</b> Settings &rarr; Advanced &rarr; Go back one version.</span>
+</div>
+
+</body>
+</html>
